@@ -258,14 +258,29 @@ body {
   background: var(--k3-white);
   border-radius: var(--k3-radius);
   box-shadow: var(--k3-shadow);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin-bottom: 18px;
+  position: relative;
+}
+
+/* Indicador de scroll lateral no mobile */
+.scroll-hint {
+  display: none;
+  text-align: center;
+  font-size: 10px;
+  color: var(--k3-gray-400);
+  padding: 5px 0;
+  letter-spacing: .5px;
+  background: var(--k3-gray-100);
+  border-radius: 0 0 var(--k3-radius) var(--k3-radius);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 11.5px;
+  min-width: 700px;
 }
 
 thead th {
@@ -278,9 +293,20 @@ thead th {
   text-transform: uppercase;
   letter-spacing: .3px;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-thead th:first-child,
+/* Primeira coluna fixa no scroll horizontal */
+thead th:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--k3-navy);
+}
+
 thead th:nth-child(2) { text-align: left; }
 
 tbody td {
@@ -290,8 +316,32 @@ tbody td {
   white-space: nowrap;
 }
 
-tbody td:first-child,
-tbody td:nth-child(2) { text-align: left; }
+tbody td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--k3-white);
+  z-index: 1;
+  border-right: 1px solid var(--k3-gray-100);
+  min-width: 130px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+tbody tr:hover td:first-child { background: #f8f9fc; }
+
+tr.team-header td:first-child,
+tr.team-subtotal td:first-child {
+  background: var(--k3-gray-100);
+}
+tr.team-subtotal td:first-child {
+  background: #EEF0F5;
+}
+tr.grand-total td:first-child {
+  background: var(--k3-navy);
+  color: var(--k3-white);
+}
 
 tbody tr:last-child td { border-bottom: none; }
 
@@ -399,12 +449,42 @@ tr.grand-total td.negative { color: #F2826A; }
 }
 
 /* ══════════════════════════════════════════════════════
-   RESPONSIVO (para captura mobile)
+   RESPONSIVO (para celular)
    ══════════════════════════════════════════════════════ */
 @media (max-width: 700px) {
-  .cards-grid { grid-template-columns: repeat(2, 1fr); }
-  .card .card-value { font-size: 16px; }
-  table { font-size: 10px; }
+  .page { padding: 0 8px 30px; }
+
+  .header { padding: 16px 18px 14px; }
+  .header h1 { font-size: 16px; }
+  .header::after { display: none; }
+
+  .section-title { font-size: 11px; margin: 16px 0 8px; }
+
+  /* Cards 2 por linha no mobile */
+  .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .card { padding: 10px 12px; }
+  .card .card-label { font-size: 9px; }
+  .card .card-value { font-size: 15px; }
+
+  .mini-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .mini-card { padding: 8px 10px; }
+  .mini-card .mc-label { font-size: 10px; }
+  .mini-card .mc-value { font-size: 13px; }
+
+  /* Tabelas com scroll */
+  .table-wrap { margin-left: -8px; margin-right: -8px; border-radius: 0; }
+  table { font-size: 10.5px; }
+  thead th { padding: 6px 8px; font-size: 9px; }
+  tbody td { padding: 5px 8px; }
+
+  /* Mostrar indicador de scroll */
+  .scroll-hint { display: block; }
+
+  .highlights-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .highlight-item { padding: 10px 12px; }
+
+  /* Import area */
+  #import-area { padding: 10px 12px; flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 </style>
 </head>
@@ -414,10 +494,19 @@ tr.grand-total td.negative { color: #F2826A; }
      ÁREA DE IMPORTAÇÃO — não aparece no print
      ═══════════════════════════════════════════════════════ -->
 <div id="import-area">
-  <label>Carregar base (CSV/TSV):</label>
+  <label>Fonte: Google Sheets (automático)</label>
+  <span id="import-status">Carregando dados...</span>
+  <span style="color:var(--k3-gray-400);font-size:11px;">|&nbsp; Backup manual:</span>
   <input type="file" id="file-input" accept=".csv,.tsv,.txt">
-  <button onclick="loadFromFile()">Carregar</button>
-  <span id="import-status"></span>
+  <button onclick="loadFromFile()">Carregar CSV</button>
+</div>
+
+<!-- Tela de loading enquanto busca os dados -->
+<div id="loading-screen" style="text-align:center;padding:80px 20px;font-family:var(--k3-font);color:#8B92A0;">
+  <div style="font-size:18px;font-weight:700;color:#0B1D3A;margin-bottom:8px;">Radar Diário K3</div>
+  <div style="font-size:13px;">Buscando dados da planilha...</div>
+  <div style="margin-top:16px;width:40px;height:40px;border:3px solid #E8EAF0;border-top-color:#C9A84C;border-radius:50%;animation:spin .8s linear infinite;display:inline-block;"></div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -516,19 +605,53 @@ function parseNumBR(str) {
 
 /**
  * Parseia TSV/CSV (auto-detecta separador) e retorna array de objetos.
+ * Suporta campos entre aspas (Google Sheets CSV coloca aspas quando há vírgulas/quebras).
  */
 function parseTSV(raw) {
   const lines = raw.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-  // Detecta separador: se a 1a linha tem tab, usa tab; senão ponto-e-vírgula; senão vírgula
+
+  // Detecta separador: tab > ponto-e-vírgula > vírgula
   let sep = '\t';
   if (!lines[0].includes('\t')) {
     sep = lines[0].includes(';') ? ';' : ',';
   }
-  const headers = lines[0].split(sep).map(h => h.trim());
+
+  function splitRow(line, separator) {
+    const fields = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') {
+          current += '"';
+          i++; // skip escaped quote
+        } else if (ch === '"') {
+          inQuotes = false;
+        } else {
+          current += ch;
+        }
+      } else {
+        if (ch === '"') {
+          inQuotes = true;
+        } else if (ch === separator) {
+          fields.push(current.trim());
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+    }
+    fields.push(current.trim());
+    return fields;
+  }
+
+  const headers = splitRow(lines[0], sep);
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
-    const vals = lines[i].split(sep);
+    const vals = splitRow(lines[i], sep);
+    if (vals.length < 2) continue; // linha vazia ou inválida
     const obj = {};
     headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim(); });
     rows.push(obj);
@@ -802,10 +925,55 @@ function renderDashboard(rows) {
     const hoje = new Date();
     document.getElementById('data-ref').value = hoje.toLocaleDateString('pt-BR');
   }
+
+  // Adicionar indicadores de scroll nas tabelas (mobile)
+  addScrollHints();
+}
+
+function addScrollHints() {
+  document.querySelectorAll('.table-wrap').forEach(wrap => {
+    // Remove hint anterior se existir
+    const old = wrap.querySelector('.scroll-hint');
+    if (old) old.remove();
+    // Checa se a tabela é mais larga que o container
+    const table = wrap.querySelector('table');
+    if (table && table.scrollWidth > wrap.clientWidth + 2) {
+      const hint = document.createElement('div');
+      hint.className = 'scroll-hint';
+      hint.textContent = '← deslize para ver mais →';
+      hint.style.display = 'block';
+      wrap.appendChild(hint);
+      // Esconder hint após primeiro scroll
+      wrap.addEventListener('scroll', function handler() {
+        hint.style.opacity = '0';
+        hint.style.transition = 'opacity .3s';
+        setTimeout(() => hint.remove(), 300);
+        wrap.removeEventListener('scroll', handler);
+      });
+    }
+  });
 }
 
 /* ══════════════════════════════════════════════════════
-   CARREGAMENTO DE ARQUIVO
+   GOOGLE SHEETS — URL DA PLANILHA
+   ═══════════════════════════════════════════════════════
+   Como configurar:
+   1. No Google Sheets → Arquivo → Compartilhar → Publicar na web
+   2. Selecione a aba e formato "CSV"
+   3. Cole a URL gerada abaixo (substitua SHEET_CSV_URL)
+   
+   A URL tem o formato:
+   https://docs.google.com/spreadsheets/d/e/2PACX-XXXXX/pub?gid=0&single=true&output=csv
+   
+   OU use o formato direto com o ID da planilha:
+   https://docs.google.com/spreadsheets/d/SEU_ID/export?format=csv&gid=0
+   ══════════════════════════════════════════════════════ */
+
+const SHEET_ID = '18dxjWE5-A9xJMIfxSlDuw8a-4pVtm6Vl_i1K44iVOfg';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+
+/* ══════════════════════════════════════════════════════
+   CARREGAMENTO DE ARQUIVO (backup manual)
    ══════════════════════════════════════════════════════ */
 function loadFromFile() {
   const fileInput = document.getElementById('file-input');
@@ -821,17 +989,64 @@ function loadFromFile() {
       return;
     }
     renderDashboard(rows);
-    document.getElementById('import-status').textContent = `✓ ${rows.length} assessores carregados.`;
+    document.getElementById('import-status').textContent = `✓ ${rows.length} assessores carregados (arquivo local).`;
   };
   reader.readAsText(fileInput.files[0], 'UTF-8');
 }
 
 /* ══════════════════════════════════════════════════════
-   INICIALIZAÇÃO — renderiza com dados de exemplo
+   FETCH DO GOOGLE SHEETS
+   ══════════════════════════════════════════════════════ */
+async function loadFromSheets() {
+  const status = document.getElementById('import-status');
+  const loading = document.getElementById('loading-screen');
+  const dashboard = document.getElementById('dashboard');
+  
+  // Esconde dashboard enquanto carrega
+  dashboard.style.display = 'none';
+
+  try {
+    const response = await fetch(SHEET_CSV_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const csvText = await response.text();
+    const rows = parseTSV(csvText);
+    
+    if (rows.length === 0) throw new Error('Planilha vazia');
+    
+    // Esconde loading, mostra dashboard
+    loading.style.display = 'none';
+    dashboard.style.display = 'block';
+    
+    renderDashboard(rows);
+    status.textContent = `✓ ${rows.length} assessores · Google Sheets`;
+    status.style.color = '#1B8C4E';
+    
+  } catch (err) {
+    console.warn('Erro ao buscar Google Sheets:', err);
+    
+    // Fallback: tenta dados de exemplo
+    loading.style.display = 'none';
+    dashboard.style.display = 'block';
+    
+    const fallbackRows = parseTSV(DADOS_EXEMPLO);
+    if (fallbackRows.length > 0) {
+      renderDashboard(fallbackRows);
+      status.textContent = '⚠ Planilha inacessível — usando dados de exemplo. Publique a planilha na web.';
+      status.style.color = '#C0392B';
+    } else {
+      status.textContent = '⚠ Erro ao carregar. Use o upload manual.';
+      status.style.color = '#C0392B';
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   INICIALIZAÇÃO
    ══════════════════════════════════════════════════════ */
 (function init() {
-  const rows = parseTSV(DADOS_EXEMPLO);
-  if (rows.length > 0) renderDashboard(rows);
+  loadFromSheets();
+  window.addEventListener('resize', addScrollHints);
 })();
 </script>
 </body>
