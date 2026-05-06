@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Diário — K3 Investimentos</title>
+<style>
+/* ══════════════════════════════════════════════════════
+   VARIÁVEIS DE TEMA — K3 Investimentos
+   Altere aqui para mudar a paleta geral do dashboard.
+   ══════════════════════════════════════════════════════ */
+:root {
+  --k3-navy: #0B1D3A;
+  --k3-navy-light: #132B52;
+  --k3-gold: #C9A84C;
+  --k3-gold-soft: #D4B96A;
+  --k3-white: #FFFFFF;
+  --k3-off-white: #F4F5F7;
+  --k3-gray-100: #E8EAF0;
+  --k3-gray-200: #D0D4DC;
+  --k3-gray-400: #8B92A0;
+  --k3-gray-600: #5A6170;
+  --k3-green: #1B8C4E;
+  --k3-green-bg: #E6F5ED;
+  --k3-red: #C0392B;
+  --k3-red-bg: #FDECEA;
+  --k3-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --k3-radius: 6px;
+  --k3-shadow: 0 1px 3px rgba(11,29,58,.08);
+}
+
+/* ══════════════════════════════════════════════════════
+   RESET & BASE
+   ══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--k3-font);
+  background: var(--k3-off-white);
+  color: var(--k3-navy);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════════════════════════════════════════════════
+   IMPORT / CONTROLES (escondidos no print)
+   ══════════════════════════════════════════════════════ */
+#import-area {
+  background: var(--k3-white);
+  border-bottom: 2px solid var(--k3-gray-100);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+#import-area label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--k3-gray-600);
+}
+
+#import-area input[type="file"] { font-size: 12px; }
+
+#import-area button {
+  background: var(--k3-navy);
+  color: var(--k3-white);
+  border: none;
+  padding: 7px 18px;
+  border-radius: var(--k3-radius);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+#import-area button:hover { background: var(--k3-navy-light); }
+
+#import-status {
+  font-size: 12px;
+  color: var(--k3-green);
+  font-weight: 600;
+}
+
+@media print {
+  #import-area { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════
+   CONTAINER PRINCIPAL
+   ══════════════════════════════════════════════════════ */
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CABEÇALHO
+   ══════════════════════════════════════════════════════ */
+.header {
+  background: linear-gradient(135deg, var(--k3-navy) 0%, var(--k3-navy-light) 100%);
+  color: var(--k3-white);
+  padding: 22px 28px 18px;
+  border-radius: 0 0 var(--k3-radius) var(--k3-radius);
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--k3-gold);
+  border-radius: 50%;
+  opacity: .25;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  margin-bottom: 2px;
+}
+
+.header h1 span { color: var(--k3-gold); }
+
+.header .subtitle {
+  font-size: 12px;
+  color: var(--k3-gray-200);
+  font-weight: 400;
+}
+
+.header .date-line {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--k3-gold-soft);
+  font-weight: 600;
+}
+
+.header .date-line input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--k3-gold);
+  color: var(--k3-gold-soft);
+  font-family: var(--k3-font);
+  font-size: 12px;
+  font-weight: 600;
+  width: 130px;
+  outline: none;
+}
+
+/* ══════════════════════════════════════════════════════
+   SEÇÕES
+   ══════════════════════════════════════════════════════ */
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--k3-navy);
+  margin: 20px 0 10px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--k3-gold);
+  display: inline-block;
+}
+
+/* ══════════════════════════════════════════════════════
+   MACRO CARDS (topo)
+   ══════════════════════════════════════════════════════ */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.card {
+  background: var(--k3-white);
+  border-radius: var(--k3-radius);
+  padding: 14px 16px;
+  box-shadow: var(--k3-shadow);
+  border-left: 3px solid var(--k3-gold);
+  position: relative;
+}
+
+.card .card-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--k3-gray-400);
+  margin-bottom: 4px;
+}
+
+.card .card-value {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--k3-navy);
+  line-height: 1.1;
+}
+
+.card .card-value.positive { color: var(--k3-green); }
+.card .card-value.negative { color: var(--k3-red); }
+
+.card.accent-green { border-left-color: var(--k3-green); }
+.card.accent-red   { border-left-color: var(--k3-red); }
+.card.accent-navy  { border-left-color: var(--k3-navy); }
+
+/* ══════════════════════════════════════════════════════
+   MINI-CARDS (segmento + ativações)
+   ══════════════════════════════════════════════════════ */
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mini-card {
+  background: var(--k3-white);
+  border-radius: var(--k3-radius);
+  padding: 10px 14px;
+  box-shadow: var(--k3-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mini-card .mc-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--k3-gray-600);
+}
+
+.mini-card .mc-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--k3-navy);
+}
+
+.mini-card .mc-pct {
+  font-size: 10px;
+  color: var(--k3-gray-400);
+  margin-left: 6px;
+}
+
+/* ══════════════════════════════════════════════════════
+   TABELAS
+   ══════════════════════════════════════════════════════ */
+.table-wrap {
+  background: var(--k3-white);
+  border-radius: var(--k3-radius);
+  box-shadow: var(--k3-shadow);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+thead th {
+  background: var(--k3-navy);
+  color: var(--k3-white);
+  padding: 8px 10px;
+  font-weight: 600;
+  text-align: right;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+
+thead th:first-child,
+thead th:nth-child(2) { text-align: left; }
+
+tbody td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--k3-gray-100);
+  white-space: nowrap;
+}
+
+tbody td:first-child,
+tbody td:nth-child(2) { text-align: left; }
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr:hover { background: #f8f9fc; }
+
+/* Linha de agrupamento por equipe */
+tr.team-header td {
+  background: var(--k3-gray-100);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--k3-navy);
+  padding: 7px 10px;
+  border-bottom: 2px solid var(--k3-gold);
+}
+
+/* Linha de subtotal por equipe */
+tr.team-subtotal td {
+  background: #EEF0F5;
+  font-weight: 700;
+  font-size: 11px;
+  border-top: 1px solid var(--k3-gray-200);
+}
+
+/* Linha total */
+tr.grand-total td {
+  background: var(--k3-navy);
+  color: var(--k3-white);
+  font-weight: 700;
+  font-size: 11.5px;
+  padding: 8px 10px;
+}
+
+tr.grand-total td.positive { color: #6FCF97; }
+tr.grand-total td.negative { color: #F2826A; }
+
+.val-pos { color: var(--k3-green); }
+.val-neg { color: var(--k3-red); }
+
+/* ══════════════════════════════════════════════════════
+   DESTAQUES (rodapé)
+   ══════════════════════════════════════════════════════ */
+.highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.highlight-item {
+  background: var(--k3-white);
+  border-radius: var(--k3-radius);
+  padding: 12px 16px;
+  box-shadow: var(--k3-shadow);
+  border-top: 3px solid var(--k3-gold);
+}
+
+.highlight-item .hi-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--k3-gray-400);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.highlight-item .hi-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--k3-navy);
+}
+
+.highlight-item .hi-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--k3-green);
+}
+
+.highlight-item .hi-value.negative { color: var(--k3-red); }
+
+/* ══════════════════════════════════════════════════════
+   RODAPÉ
+   ══════════════════════════════════════════════════════ */
+.footer {
+  text-align: center;
+  font-size: 10px;
+  color: var(--k3-gray-400);
+  padding: 10px 0 0;
+  border-top: 1px solid var(--k3-gray-200);
+}
+
+/* ══════════════════════════════════════════════════════
+   PRINT
+   ══════════════════════════════════════════════════════ */
+@media print {
+  body { background: white; font-size: 11px; }
+  .page { max-width: 100%; padding: 0 8px 20px; }
+  .header { margin-top: 0; }
+  .cards-grid { grid-template-columns: repeat(4, 1fr); }
+  .card .card-value { font-size: 16px; }
+  table { font-size: 10px; }
+  thead th { padding: 5px 6px; font-size: 9px; }
+  tbody td { padding: 4px 6px; }
+  .table-wrap { box-shadow: none; border: 1px solid var(--k3-gray-200); }
+  .section-title { margin: 14px 0 8px; }
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVO (para captura mobile)
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .card .card-value { font-size: 16px; }
+  table { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     ÁREA DE IMPORTAÇÃO — não aparece no print
+     ═══════════════════════════════════════════════════════ -->
+<div id="import-area">
+  <label>Carregar base (CSV/TSV):</label>
+  <input type="file" id="file-input" accept=".csv,.tsv,.txt">
+  <button onclick="loadFromFile()">Carregar</button>
+  <span id="import-status"></span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     DASHBOARD
+     ═══════════════════════════════════════════════════════ -->
+<div class="page" id="dashboard">
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <h1>Radar Diário de <span>Captação e Ativação</span></h1>
+    <div class="subtitle">Fechamento diário &nbsp;|&nbsp; K3 Investimentos</div>
+    <div class="date-line">
+      Atualização: <input type="text" id="data-ref" value="" placeholder="dd/mm/aaaa">
+    </div>
+  </div>
+
+  <!-- CARDS MACRO -->
+  <div class="section-title">Visão Geral</div>
+  <div class="cards-grid" id="macro-cards"></div>
+
+  <!-- SEGMENTO COMERCIAL -->
+  <div class="section-title">Captação por Segmento Comercial</div>
+  <div class="mini-grid" id="segmento-cards"></div>
+
+  <!-- ATIVAÇÕES -->
+  <div class="section-title">Ativações</div>
+  <div class="mini-grid" id="ativacao-cards"></div>
+
+  <!-- TABELA POR EQUIPE -->
+  <div class="section-title">Consolidado por Equipe</div>
+  <div class="table-wrap" id="tabela-equipe-wrap"></div>
+
+  <!-- TABELA ASSESSORES (COMPLETA) -->
+  <div class="section-title">Detalhamento por Assessor</div>
+  <div class="table-wrap" id="tabela-assessores-wrap"></div>
+
+  <!-- DESTAQUES -->
+  <div class="section-title">Destaques do Dia</div>
+  <div class="highlights-grid" id="destaques"></div>
+
+  <div class="footer">
+    K3 Investimentos — Radar Diário &nbsp;|&nbsp; Gerado automaticamente
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   ╔═══════════════════════════════════════════════════════════════════╗
+   ║  DADOS DE EXEMPLO — COLE / SUBSTITUA AQUI A SUA BASE DIÁRIA     ║
+   ║                                                                   ║
+   ║  Formato: TSV (tab-separated). Copie do Excel e cole entre       ║
+   ║  as crases abaixo. A primeira linha deve ser o cabeçalho.        ║
+   ║                                                                   ║
+   ║  Colunas esperadas (nesta ordem):                                ║
+   ║  Equipe | Nome Assessor | Cap. Liq. Total |                      ║
+   ║  Cap. Onshore PME Middle | Cap. Onshore Corporate |              ║
+   ║  Cap. Onshore Novos Clientes | Aportes da Base |                 ║
+   ║  Resgates da Base | Ativação 300k+ | Ativação 300k- |           ║
+   ║  Ativação PF | Ativação PJ | Captação Líquida Positivador |     ║
+   ║  Receita no Mês | Net Em M                                       ║
+   ╚═══════════════════════════════════════════════════════════════════╝
+   ══════════════════════════════════════════════════════════════════════ */
+
+const DADOS_EXEMPLO = `Equipe\tNome Assessor\tCap. Liq. Total\tCap. Onshore PME Middle\tCap. Onshore Corporate\tCap. Onshore Novos Clientes\tAportes da Base\tResgates da Base\tAtivação 300k+\tAtivação 300k-\tAtivação PF\tAtivação PJ\tCaptação Líquida Positivador\tReceita no Mês\tNet Em M
+Equipe Alpha\tCarlos Mendes\t2350000,50\t800000\t450000\t320000\t1200000\t-480000\t3\t5\t6\t2\t1890000\t58000\t12500000
+Equipe Alpha\tFernanda Lima\t1870000,25\t620000\t380000\t270000\t950000\t-320000\t2\t4\t5\t1\t1540000\t47000\t9800000
+Equipe Alpha\tRicardo Alves\t-350000\t120000\t-200000\t50000\t300000\t-520000\t1\t2\t2\t1\t-110000\t32000\t7200000
+Equipe Beta\tJuliana Rocha\t4120000,80\t1500000\t900000\t520000\t2100000\t-380000\t5\t7\t9\t3\t3700000\t82000\t18500000
+Equipe Beta\tMarcos Silva\t1560000\t500000\t310000\t180000\t800000\t-230000\t2\t3\t4\t1\t1320000\t41000\t8900000
+Equipe Beta\tAna Beatriz\t780000\t280000\t150000\t100000\t450000\t-200000\t1\t2\t2\t1\t620000\t28000\t5600000
+Equipe Gamma\tPedro Costa\t3200000\t1100000\t700000\t400000\t1800000\t-300000\t4\t6\t8\t2\t2800000\t72000\t15200000
+Equipe Gamma\tLuciana Martins\t920000\t350000\t200000\t130000\t520000\t-280000\t1\t3\t3\t1\t740000\t31000\t6800000
+Equipe Gamma\tBruno Tavares\t-680000\t50000\t-100000\t30000\t200000\t-860000\t0\t1\t1\t0\t-520000\t18000\t4100000
+Equipe Delta\tPatrícia Nunes\t5100000\t1800000\t1200000\t700000\t2600000\t-200000\t6\t8\t10\t4\t4500000\t95000\t22000000
+Equipe Delta\tGabriel Souza\t2100000\t700000\t500000\t300000\t1100000\t-500000\t3\t4\t5\t2\t1800000\t52000\t11000000
+Equipe Delta\tCamila Ferreira\t450000\t180000\t100000\t60000\t350000\t-240000\t1\t1\t1\t1\t380000\t22000\t3800000`;
+
+/* ══════════════════════════════════════════════════════
+   PARSING & CONVERSÃO
+   ══════════════════════════════════════════════════════ */
+
+/**
+ * Converte string numérica em padrão BR para number JS.
+ * Exemplos: "2.350.000,50" → 2350000.50 | "-680000" → -680000
+ */
+function parseNumBR(str) {
+  if (!str || str.trim() === '' || str.trim() === '-') return 0;
+  let s = str.trim();
+  // Se tiver vírgula como decimal: remove pontos de milhar, troca vírgula por ponto
+  if (s.includes(',')) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+/**
+ * Parseia TSV/CSV (auto-detecta separador) e retorna array de objetos.
+ */
+function parseTSV(raw) {
+  const lines = raw.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  // Detecta separador: se a 1a linha tem tab, usa tab; senão ponto-e-vírgula; senão vírgula
+  let sep = '\t';
+  if (!lines[0].includes('\t')) {
+    sep = lines[0].includes(';') ? ';' : ',';
+  }
+  const headers = lines[0].split(sep).map(h => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = lines[i].split(sep);
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+/* ══════════════════════════════════════════════════════
+   FORMATAÇÃO
+   ══════════════════════════════════════════════════════ */
+
+/** Formata valor financeiro abreviado em R$ */
+function fmtMoney(v) {
+  const abs = Math.abs(v);
+  const sign = v < 0 ? '-' : '';
+  if (abs >= 1e9) return sign + 'R$ ' + (abs / 1e9).toFixed(1).replace('.', ',') + ' bi';
+  if (abs >= 1e6) return sign + 'R$ ' + (abs / 1e6).toFixed(1).replace('.', ',') + ' mi';
+  if (abs >= 1e3) return sign + 'R$ ' + (abs / 1e3).toFixed(1).replace('.', ',') + ' mil';
+  return sign + 'R$ ' + abs.toFixed(0);
+}
+
+/** Formata inteiro */
+function fmtInt(v) { return Math.round(v).toLocaleString('pt-BR'); }
+
+/** Retorna classe CSS baseada no sinal */
+function signClass(v) { return v > 0 ? 'val-pos' : v < 0 ? 'val-neg' : ''; }
+function signClassCard(v) { return v > 0 ? 'positive' : v < 0 ? 'negative' : ''; }
+
+/* ══════════════════════════════════════════════════════
+   RENDERIZAÇÃO DO DASHBOARD
+   ══════════════════════════════════════════════════════ */
+
+function renderDashboard(rows) {
+  // Mapear colunas
+  const get = (row, key) => {
+    // Tenta match exato ou parcial
+    if (row[key] !== undefined) return row[key];
+    for (const k of Object.keys(row)) {
+      if (k.toLowerCase().includes(key.toLowerCase())) return row[k];
+    }
+    return '0';
+  };
+
+  const data = rows.map(r => ({
+    equipe:    get(r, 'Equipe'),
+    nome:      get(r, 'Nome Assessor'),
+    capLiq:    parseNumBR(get(r, 'Cap. Liq. Total')),
+    pme:       parseNumBR(get(r, 'Cap. Onshore PME Middle')),
+    corporate: parseNumBR(get(r, 'Cap. Onshore Corporate')),
+    novos:     parseNumBR(get(r, 'Cap. Onshore Novos Clientes')),
+    aportes:   parseNumBR(get(r, 'Aportes da Base')),
+    resgates:  parseNumBR(get(r, 'Resgates da Base')),
+    ativ300p:  parseNumBR(get(r, 'Ativação 300k+')),
+    ativ300m:  parseNumBR(get(r, 'Ativação 300k-')),
+    ativPF:    parseNumBR(get(r, 'Ativação PF')),
+    ativPJ:    parseNumBR(get(r, 'Ativação PJ')),
+    capPos:    parseNumBR(get(r, 'Captação Líquida Positivador')),
+    receita:   parseNumBR(get(r, 'Receita no Mês')),
+    net:       parseNumBR(get(r, 'Net Em M')),
+  }));
+
+  // Totais
+  const sum = (arr, key) => arr.reduce((s, d) => s + d[key], 0);
+  const totCapLiq   = sum(data, 'capLiq');
+  const totAportes  = sum(data, 'aportes');
+  const totResgates = sum(data, 'resgates');
+  const totAtiv300p = sum(data, 'ativ300p');
+  const totAtiv300m = sum(data, 'ativ300m');
+  const totAtivPF   = sum(data, 'ativPF');
+  const totAtivPJ   = sum(data, 'ativPJ');
+  const totReceita  = sum(data, 'receita');
+  const totNet      = sum(data, 'net');
+  const totPME      = sum(data, 'pme');
+  const totCorp     = sum(data, 'corporate');
+  const totNovos    = sum(data, 'novos');
+
+  // ─── 1. CARDS MACRO ────────────────────────────────
+  const macroCards = [
+    { label: 'Captação Líquida Total',  val: totCapLiq,   fmt: fmtMoney, accent: '' },
+    { label: 'Aportes da Base',         val: totAportes,  fmt: fmtMoney, accent: 'accent-green' },
+    { label: 'Resgates da Base',        val: totResgates, fmt: fmtMoney, accent: 'accent-red' },
+    { label: 'Ativações 300k+',         val: totAtiv300p, fmt: fmtInt,   accent: 'accent-navy' },
+    { label: 'Ativações 300k-',         val: totAtiv300m, fmt: fmtInt,   accent: '' },
+    { label: 'Total de Ativações',      val: totAtiv300p + totAtiv300m, fmt: fmtInt, accent: 'accent-navy' },
+    { label: 'Receita no Mês',          val: totReceita,  fmt: fmtMoney, accent: 'accent-green' },
+    { label: 'NET / AUC Total',         val: totNet,      fmt: fmtMoney, accent: '' },
+  ];
+
+  document.getElementById('macro-cards').innerHTML = macroCards.map(c => `
+    <div class="card ${c.accent}">
+      <div class="card-label">${c.label}</div>
+      <div class="card-value ${signClassCard(c.val)}">${c.fmt(c.val)}</div>
+    </div>
+  `).join('');
+
+  // ─── 2. SEGMENTO COMERCIAL ─────────────────────────
+  const totalSeg = Math.abs(totPME) + Math.abs(totCorp) + Math.abs(totNovos) + Math.abs(totAportes) + Math.abs(totResgates);
+  const pct = v => totalSeg > 0 ? ((Math.abs(v) / totalSeg) * 100).toFixed(1) + '%' : '—';
+  const segs = [
+    { label: 'PME Middle',       val: totPME },
+    { label: 'Corporate',        val: totCorp },
+    { label: 'Novos Clientes',   val: totNovos },
+    { label: 'Aportes da Base',  val: totAportes },
+    { label: 'Resgates da Base', val: totResgates },
+  ];
+
+  document.getElementById('segmento-cards').innerHTML = segs.map(s => `
+    <div class="mini-card">
+      <div>
+        <div class="mc-label">${s.label}</div>
+      </div>
+      <div style="text-align:right;">
+        <span class="mc-value ${signClass(s.val)}">${fmtMoney(s.val)}</span>
+        <span class="mc-pct">${pct(s.val)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // ─── 3. ATIVAÇÕES ──────────────────────────────────
+  const ativCards = [
+    { label: 'Ativação 300k+', val: totAtiv300p },
+    { label: 'Ativação 300k-', val: totAtiv300m },
+    { label: 'Ativação PF',    val: totAtivPF },
+    { label: 'Ativação PJ',    val: totAtivPJ },
+  ];
+
+  document.getElementById('ativacao-cards').innerHTML = ativCards.map(a => `
+    <div class="mini-card">
+      <div class="mc-label">${a.label}</div>
+      <div class="mc-value">${fmtInt(a.val)}</div>
+    </div>
+  `).join('');
+
+  // ─── 4. TABELA POR EQUIPE ─────────────────────────
+  const equipes = {};
+  data.forEach(d => {
+    if (!equipes[d.equipe]) equipes[d.equipe] = [];
+    equipes[d.equipe].push(d);
+  });
+
+  const eqSummary = Object.keys(equipes).map(eq => {
+    const arr = equipes[eq];
+    return {
+      equipe: eq,
+      capLiq:   sum(arr, 'capLiq'),
+      aportes:  sum(arr, 'aportes'),
+      resgates: sum(arr, 'resgates'),
+      ativ300p: sum(arr, 'ativ300p'),
+      ativ300m: sum(arr, 'ativ300m'),
+      totalAtiv: sum(arr, 'ativ300p') + sum(arr, 'ativ300m'),
+      receita:  sum(arr, 'receita'),
+      net:      sum(arr, 'net'),
+    };
+  }).sort((a, b) => b.capLiq - a.capLiq);
+
+  let eqHTML = `<table>
+    <thead><tr>
+      <th>Equipe</th><th>Cap. Líq. Total</th><th>Aportes</th><th>Resgates</th>
+      <th>Ativ. 300k+</th><th>Ativ. 300k-</th><th>Total Ativ.</th><th>Receita</th><th>Net</th>
+    </tr></thead><tbody>`;
+
+  eqSummary.forEach(e => {
+    eqHTML += `<tr>
+      <td style="font-weight:600">${e.equipe}</td>
+      <td class="${signClass(e.capLiq)}">${fmtMoney(e.capLiq)}</td>
+      <td class="${signClass(e.aportes)}">${fmtMoney(e.aportes)}</td>
+      <td class="${signClass(e.resgates)}">${fmtMoney(e.resgates)}</td>
+      <td>${fmtInt(e.ativ300p)}</td><td>${fmtInt(e.ativ300m)}</td><td>${fmtInt(e.totalAtiv)}</td>
+      <td class="${signClass(e.receita)}">${fmtMoney(e.receita)}</td>
+      <td>${fmtMoney(e.net)}</td>
+    </tr>`;
+  });
+
+  // Total geral
+  eqHTML += `<tr class="grand-total">
+    <td>TOTAL</td>
+    <td class="${totCapLiq >= 0 ? 'positive' : 'negative'}">${fmtMoney(totCapLiq)}</td>
+    <td class="${totAportes >= 0 ? 'positive' : 'negative'}">${fmtMoney(totAportes)}</td>
+    <td class="${totResgates >= 0 ? 'positive' : 'negative'}">${fmtMoney(totResgates)}</td>
+    <td>${fmtInt(totAtiv300p)}</td><td>${fmtInt(totAtiv300m)}</td><td>${fmtInt(totAtiv300p + totAtiv300m)}</td>
+    <td class="${totReceita >= 0 ? 'positive' : 'negative'}">${fmtMoney(totReceita)}</td>
+    <td>${fmtMoney(totNet)}</td>
+  </tr>`;
+  eqHTML += '</tbody></table>';
+  document.getElementById('tabela-equipe-wrap').innerHTML = eqHTML;
+
+  // ─── 5. TABELA ASSESSORES (COMPLETA, AGRUPADA) ────
+  // Ordenar por equipe, depois por capLiq desc dentro de cada equipe
+  const sortedTeams = Object.keys(equipes).sort((a, b) => {
+    const sa = sum(equipes[a], 'capLiq');
+    const sb = sum(equipes[b], 'capLiq');
+    return sb - sa;
+  });
+
+  let assHTML = `<table>
+    <thead><tr>
+      <th>Assessor</th><th>Cap. Líq. Total</th><th>Aportes</th><th>Resgates</th>
+      <th>Ativ. 300k+</th><th>Ativ. 300k-</th><th>Total Ativ.</th><th>Receita</th><th>Net</th>
+    </tr></thead><tbody>`;
+
+  sortedTeams.forEach(eq => {
+    const members = equipes[eq].sort((a, b) => b.capLiq - a.capLiq);
+    const eqTot = eqSummary.find(e => e.equipe === eq);
+
+    // Header de equipe
+    assHTML += `<tr class="team-header"><td colspan="9">${eq}</td></tr>`;
+
+    members.forEach(m => {
+      const totalAtiv = m.ativ300p + m.ativ300m;
+      assHTML += `<tr>
+        <td style="padding-left:18px">${m.nome}</td>
+        <td class="${signClass(m.capLiq)}">${fmtMoney(m.capLiq)}</td>
+        <td class="${signClass(m.aportes)}">${fmtMoney(m.aportes)}</td>
+        <td class="${signClass(m.resgates)}">${fmtMoney(m.resgates)}</td>
+        <td>${fmtInt(m.ativ300p)}</td><td>${fmtInt(m.ativ300m)}</td><td>${fmtInt(totalAtiv)}</td>
+        <td class="${signClass(m.receita)}">${fmtMoney(m.receita)}</td>
+        <td>${fmtMoney(m.net)}</td>
+      </tr>`;
+    });
+
+    // Subtotal da equipe
+    assHTML += `<tr class="team-subtotal">
+      <td>Subtotal ${eq}</td>
+      <td class="${signClass(eqTot.capLiq)}">${fmtMoney(eqTot.capLiq)}</td>
+      <td class="${signClass(eqTot.aportes)}">${fmtMoney(eqTot.aportes)}</td>
+      <td class="${signClass(eqTot.resgates)}">${fmtMoney(eqTot.resgates)}</td>
+      <td>${fmtInt(eqTot.ativ300p)}</td><td>${fmtInt(eqTot.ativ300m)}</td><td>${fmtInt(eqTot.totalAtiv)}</td>
+      <td class="${signClass(eqTot.receita)}">${fmtMoney(eqTot.receita)}</td>
+      <td>${fmtMoney(eqTot.net)}</td>
+    </tr>`;
+  });
+
+  // Grand total
+  assHTML += `<tr class="grand-total">
+    <td>TOTAL GERAL</td>
+    <td class="${totCapLiq >= 0 ? 'positive' : 'negative'}">${fmtMoney(totCapLiq)}</td>
+    <td class="${totAportes >= 0 ? 'positive' : 'negative'}">${fmtMoney(totAportes)}</td>
+    <td class="${totResgates >= 0 ? 'positive' : 'negative'}">${fmtMoney(totResgates)}</td>
+    <td>${fmtInt(totAtiv300p)}</td><td>${fmtInt(totAtiv300m)}</td><td>${fmtInt(totAtiv300p + totAtiv300m)}</td>
+    <td class="${totReceita >= 0 ? 'positive' : 'negative'}">${fmtMoney(totReceita)}</td>
+    <td>${fmtMoney(totNet)}</td>
+  </tr>`;
+  assHTML += '</tbody></table>';
+  document.getElementById('tabela-assessores-wrap').innerHTML = assHTML;
+
+  // ─── 6. DESTAQUES DO DIA ──────────────────────────
+  const bestCap   = data.reduce((best, d) => d.capLiq > best.capLiq ? d : best, data[0]);
+  const worstCap  = data.reduce((worst, d) => d.capLiq < worst.capLiq ? d : worst, data[0]);
+  const bestAtiv  = data.reduce((best, d) => (d.ativ300p + d.ativ300m) > (best.ativ300p + best.ativ300m) ? d : best, data[0]);
+  const bestEqCap = eqSummary[0];
+  const bestEqAtiv = [...eqSummary].sort((a, b) => b.totalAtiv - a.totalAtiv)[0];
+
+  const highlights = [
+    { label: 'Maior Captação Líquida', name: bestCap.nome, value: fmtMoney(bestCap.capLiq), neg: false },
+    { label: 'Maior Resgate / Atenção', name: worstCap.nome, value: fmtMoney(worstCap.capLiq), neg: true },
+    { label: 'Mais Ativações (assessor)', name: bestAtiv.nome, value: fmtInt(bestAtiv.ativ300p + bestAtiv.ativ300m) + ' ativações', neg: false },
+    { label: 'Equipe Maior Captação', name: bestEqCap.equipe, value: fmtMoney(bestEqCap.capLiq), neg: false },
+    { label: 'Equipe Mais Ativações', name: bestEqAtiv.equipe, value: fmtInt(bestEqAtiv.totalAtiv) + ' ativações', neg: false },
+  ];
+
+  document.getElementById('destaques').innerHTML = highlights.map(h => `
+    <div class="highlight-item">
+      <div class="hi-label">${h.label}</div>
+      <div class="hi-name">${h.name}</div>
+      <div class="hi-value ${h.neg ? 'negative' : ''}">${h.value}</div>
+    </div>
+  `).join('');
+
+  // Atualizar data
+  if (!document.getElementById('data-ref').value) {
+    const hoje = new Date();
+    document.getElementById('data-ref').value = hoje.toLocaleDateString('pt-BR');
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   CARREGAMENTO DE ARQUIVO
+   ══════════════════════════════════════════════════════ */
+function loadFromFile() {
+  const fileInput = document.getElementById('file-input');
+  if (!fileInput.files.length) {
+    document.getElementById('import-status').textContent = 'Selecione um arquivo.';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rows = parseTSV(e.target.result);
+    if (rows.length === 0) {
+      document.getElementById('import-status').textContent = 'Arquivo vazio ou inválido.';
+      return;
+    }
+    renderDashboard(rows);
+    document.getElementById('import-status').textContent = `✓ ${rows.length} assessores carregados.`;
+  };
+  reader.readAsText(fileInput.files[0], 'UTF-8');
+}
+
+/* ══════════════════════════════════════════════════════
+   INICIALIZAÇÃO — renderiza com dados de exemplo
+   ══════════════════════════════════════════════════════ */
+(function init() {
+  const rows = parseTSV(DADOS_EXEMPLO);
+  if (rows.length > 0) renderDashboard(rows);
+})();
+</script>
+</body>
+</html>
