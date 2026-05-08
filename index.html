@@ -39,12 +39,11 @@ body{font-family:var(--k3-font);background:var(--k3-off-white);color:var(--k3-na
 
 /* CARDS */
 .cg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:6px}
-.cd{background:var(--k3-white);border-radius:var(--k3-r);padding:10px 12px;box-shadow:var(--k3-sh);border-left:3px solid var(--k3-gold)}
+.cd{background:var(--k3-white);border-radius:var(--k3-r);padding:10px 12px;box-shadow:var(--k3-sh);border-left:3px solid var(--k3-navy)}
 .cd .cl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--k3-g400);margin-bottom:2px}
 .cd .cv{font-size:16px;font-weight:700;color:var(--k3-navy);line-height:1.1}
 .cd .cv.pos{color:var(--k3-green)}.cd .cv.neg{color:var(--k3-red)}
 .cd .cs{font-size:8px;color:var(--k3-g400);margin-top:1px}
-.cd.ag{border-left-color:var(--k3-green)}.cd.ar{border-left-color:var(--k3-red)}.cd.an{border-left-color:var(--k3-navy)}.cd.ao{border-left-color:var(--k3-orange)}
 
 /* MINI CARDS */
 .mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px;margin-bottom:6px}
@@ -200,11 +199,14 @@ tr.gt td.pos{color:#6FCF97}tr.gt td.neg{color:#F2826A}
   <!-- ABA 2: POR EQUIPE -->
   <div class="tc" id="t1">
     <div class="ts" id="eq-sel"></div>
-    <div class="st">Indicadores da Equipe</div>
+    <div class="st">Captação e Performance</div>
     <div class="cg" id="eq-cards1"></div>
-    <div class="cg" id="eq-cards2" style="margin-top:7px"></div>
-    <div class="cg" id="eq-cards3" style="margin-top:7px"></div>
-    <div class="cg" id="eq-cards4" style="margin-top:7px"></div>
+    <div class="st">Ativações</div>
+    <div class="cg" id="eq-cards2"></div>
+    <div class="st">Qualidade e Indicadores</div>
+    <div class="cg" id="eq-cards3"></div>
+    <div class="st">Seguros e Consórcio</div>
+    <div class="cg" id="eq-cards4"></div>
     <div class="st">Captação por Segmento</div>
     <div class="mg" id="eq-seg"></div>
     <div class="st">Assessores</div>
@@ -236,16 +238,16 @@ const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
    Valores em R$ (ex: 500000 = R$ 500 mil)
    ═══════════════════════════════════════════════════════ */
 const PRODUCT_TARGETS={
-  "Renda Fixa":363032,
-  "Renda Variável":164889,
-  "Cetipados":137124,
-  "COE":59468,
-  "Internacional":72894,
-  "Fundos":41309,
-  "Previdência":59227,
-  "Fee Fixo":242864,
-  "Câmbio":152519,
-  "Mesa":1293325
+  "Renda Fixa":0,
+  "Renda Variável":0,
+  "Cetipados":0,
+  "COE":0,
+  "Internacional":0,
+  "Fundos":0,
+  "Previdência":0,
+  "Fee Fixo":0,
+  "Câmbio":0,
+  "Mesa":0
 };
 
 /* PRODUCT COLUMN MAP */
@@ -388,7 +390,7 @@ function swTab(i){
 function getEqs(){const eq={};D.forEach(d=>{if(!eq[d.equipe])eq[d.equipe]=[];eq[d.equipe].push(d)});return eq}
 function mesaPerAssessor(d){return d.rRF+d.rRV+d.rCet+d.rCOE+d.rInt+d.rFun+d.rPrev+d.rFee+d.rCam}
 
-function card(l,v,f,a,sub){return`<div class="cd ${a||''}"><div class="cl">${l}</div><div class="cv ${scc(v)}">${f(v)}</div>${sub?`<div class="cs">${sub}</div>`:''}</div>`}
+function card(l,v,f,sub){return`<div class="cd"><div class="cl">${l}</div><div class="cv ${scc(v)}">${f(v)}</div>${sub?`<div class="cs">${sub}</div>`:''}</div>`}
 function miniCard(l,v,pct){return`<div class="mc"><div><div class="ml">${l}</div></div><div style="text-align:right"><span class="mv ${sc(v)}">${fm(v)}</span>${pct?`<span class="mp">${pct}</span>`:''}</div></div>`}
 
 /* ═══════════════════════════════════════════════════════
@@ -401,40 +403,40 @@ function rGeral(){
 
   // Cards 1: Captação e Performance
   document.getElementById('g-cards1').innerHTML=[
-    card('Cap. Líquida Relatório',tCL,fm,'an'),
-    card('Cap. Manual Adicionada',mt,fm,'ao',mt?'':'nenhuma'),
-    card('Cap. Líquida Ajustada',adj,fm,'an',mt?`Rel: ${fm(tCL)} + Man: ${fm(mt)}`:''),
-    card('Aportes da Base',tAp,fm,'ag'),
-    card('Resgates da Base',tRe,fm,'ar'),
-    card('Net / AUC Total',tNet,fm,''),
-    card('Receita no Mês',tRec,fm,'ag'),
-    card('Captação PF',S(d,'capPF'),fm,''),
+    card('Cap. Líquida Relatório',tCL,fm),
+    card('Cap. Manual Adicionada',mt,fm,mt?'':'nenhuma'),
+    card('Cap. Líquida Ajustada',adj,fm,mt?`Rel: ${fm(tCL)} + Man: ${fm(mt)}`:''),
+    card('Aportes da Base',tAp,fm),
+    card('Resgates da Base',tRe,fm),
+    card('Net / AUC Total',tNet,fm),
+    card('Receita no Mês',tRec,fm),
+    card('Captação PF',S(d,'capPF'),fm),
   ].join('');
 
   // Cards 2: Ativações
   document.getElementById('g-cards2').innerHTML=[
-    card('Ativações 300k+',t3p,fi,'an'),
-    card('Ativações 300k-',t3m,fi,''),
-    card('Total Ativações',t3p+t3m,fi,'an',`300k+: ${fi(t3p)} | 300k-: ${fi(t3m)}`),
-    card('Ativações PF',taPF,fi,''),
-    card('Ativações PJ',taPJ,fi,''),
+    card('Ativações 300k+',t3p,fi),
+    card('Ativações 300k-',t3m,fi),
+    card('Total Ativações',t3p+t3m,fi,`300k+: ${fi(t3p)} | 300k-: ${fi(t3m)}`),
+    card('Ativações PF',taPF,fi),
+    card('Ativações PJ',taPJ,fi),
   ].join('');
 
   // Cards 3: Qualidade
   document.getElementById('g-cards3').innerHTML=[
-    card('Modelo de Servir',A(d,'modServ'),fd,''),
-    card('Saúde do Cliente',A(d,'saude'),fd,''),
-    card('Clientes em Ruptura',S(d,'rupt'),fi,'ar'),
+    card('Modelo de Servir',A(d,'modServ'),fd),
+    card('Saúde do Cliente',A(d,'saude'),fd),
+    card('Clientes em Ruptura',S(d,'rupt'),fi),
   ].join('');
 
   // Cards 4: Seguros e Consórcio
   document.getElementById('g-cards4').innerHTML=[
-    card('R1 Seguros',S(d,'r1'),fi,''),
-    card('R2 Seguros',S(d,'r2'),fi,''),
-    card('Apólices em Andamento',S(d,'apolAnd'),fi,''),
-    card('Apólices Emitidas',S(d,'apolEm'),fi,''),
-    card('Reuniões Consórcio',S(d,'reuCons'),fi,''),
-    card('Fechamentos Consórcio',S(d,'feCons'),fi,''),
+    card('R1 Seguros',S(d,'r1'),fi),
+    card('R2 Seguros',S(d,'r2'),fi),
+    card('Apólices em Andamento',S(d,'apolAnd'),fi),
+    card('Apólices Emitidas',S(d,'apolEm'),fi),
+    card('Reuniões Consórcio',S(d,'reuCons'),fi),
+    card('Fechamentos Consórcio',S(d,'feCons'),fi),
   ].join('');
 
   // Segmentos
@@ -453,21 +455,22 @@ function rGeral(){
 function rHighlights(){
   const d=D;if(!d.length)return;
   const eqs=getEqs(),eqNames=Object.keys(eqs);
-  const eqS=eqNames.map(eq=>{const a=eqs[eq];return{eq,capLiq:S(a,'capLiq'),a3p:S(a,'a3p'),a3m:S(a,'a3m'),receita:S(a,'receita'),modServ:A(a,'modServ'),saude:A(a,'saude'),r1:S(a,'r1'),feCons:S(a,'feCons')}});
+  const eqS=eqNames.map(eq=>{const a=eqs[eq];return{eq,capLiq:S(a,'capLiq'),a3p:S(a,'a3p'),a3m:S(a,'a3m'),receita:S(a,'receita'),modServ:A(a,'modServ'),saude:A(a,'saude'),r1:S(a,'r1'),r2:S(a,'r2'),apolAnd:S(a,'apolAnd'),apolEm:S(a,'apolEm'),feCons:S(a,'feCons')}});
 
   const best=(arr,k)=>arr.reduce((b,x)=>x[k]>b[k]?x:b,arr[0]);
-  const bCap=best(d,'capLiq'),bAtiv=best(d.map(x=>({...x,ta:x.a3p+x.a3m})),'ta')||d[0];
-  const bRec=best(d,'receita'),bR1=best(d,'r1'),bFeCons=best(d,'feCons');
+  const bCap=best(d,'capLiq');
+  const dTA=d.map(x=>({...x,ta:x.a3p+x.a3m}));const bAtivA=best(dTA,'ta');
+  const bRec=best(d,'receita'),bR1=best(d,'r1'),bR2=best(d,'r2');
+  const bApolAnd=best(d,'apolAnd'),bApolEm=best(d,'apolEm'),bFeCons=best(d,'feCons');
   const bEqCap=best(eqS,'capLiq'),bEqAtiv=best(eqS.map(x=>({...x,ta:x.a3p+x.a3m})),'ta');
   const bEqRec=best(eqS,'receita'),bEqMod=best(eqS,'modServ'),bEqSaude=best(eqS,'saude');
-  const bEqR1=best(eqS,'r1'),bEqFeCons=best(eqS,'feCons');
-  // Best assessor ativações
-  const dTA=d.map(x=>({...x,ta:x.a3p+x.a3m}));const bAtivA=best(dTA,'ta');
+  const bEqR1=best(eqS,'r1'),bEqR2=best(eqS,'r2');
+  const bEqApolAnd=best(eqS,'apolAnd'),bEqApolEm=best(eqS,'apolEm'),bEqFeCons=best(eqS,'feCons');
 
   const hl=[
     {l:'Equipe Maior Captação',n:bEqCap.eq,v:fm(bEqCap.capLiq)},
     {l:'Assessor Maior Captação',n:bCap.nome,v:fm(bCap.capLiq)},
-    {l:'Equipe Mais Ativações 300k+',n:bEqAtiv.eq,v:fi(bEqAtiv.ta)+' ativ.'},
+    {l:'Equipe Mais Ativações',n:bEqAtiv.eq,v:fi(bEqAtiv.ta)+' ativ.'},
     {l:'Assessor Mais Ativações',n:bAtivA.nome,v:fi(bAtivA.ta)+' ativ.'},
     {l:'Equipe Maior Receita',n:bEqRec.eq,v:fm(bEqRec.receita)},
     {l:'Assessor Maior Receita',n:bRec.nome,v:fm(bRec.receita)},
@@ -475,6 +478,12 @@ function rHighlights(){
     {l:'Equipe Melhor Saúde Cliente',n:bEqSaude.eq,v:fd(bEqSaude.saude)},
     {l:'Equipe Mais R1 Seguros',n:bEqR1.eq,v:fi(bEqR1.r1)},
     {l:'Assessor Mais R1 Seguros',n:bR1.nome,v:fi(bR1.r1)},
+    {l:'Equipe Mais R2 Seguros',n:bEqR2.eq,v:fi(bEqR2.r2)},
+    {l:'Assessor Mais R2 Seguros',n:bR2.nome,v:fi(bR2.r2)},
+    {l:'Equipe Mais Apól. Andamento',n:bEqApolAnd.eq,v:fi(bEqApolAnd.apolAnd)},
+    {l:'Assessor Mais Apól. Andamento',n:bApolAnd.nome,v:fi(bApolAnd.apolAnd)},
+    {l:'Equipe Mais Apól. Emitidas',n:bEqApolEm.eq,v:fi(bEqApolEm.apolEm)},
+    {l:'Assessor Mais Apól. Emitidas',n:bApolEm.nome,v:fi(bApolEm.apolEm)},
     {l:'Equipe Mais Fech. Consórcio',n:bEqFeCons.eq,v:fi(bEqFeCons.feCons)},
     {l:'Assessor Mais Fech. Consórcio',n:bFeCons.nome,v:fi(bFeCons.feCons)},
   ];
@@ -492,21 +501,21 @@ function rEquipe(){
   const ms=eqs[SEL_EQ],s=k=>S(ms,k),a=k=>A(ms,k);
 
   document.getElementById('eq-cards1').innerHTML=[
-    card('Cap. Líquida',s('capLiq'),fm,'an'),card('Captação PF',s('capPF'),fm,''),
-    card('Aportes',s('aportes'),fm,'ag'),card('Resgates',s('resgates'),fm,'ar'),
-    card('Receita no Mês',s('receita'),fm,'ag'),card('Net',s('net'),fm,''),
+    card('Cap. Líquida',s('capLiq'),fm),card('Captação PF',s('capPF'),fm),
+    card('Aportes',s('aportes'),fm),card('Resgates',s('resgates'),fm),
+    card('Receita no Mês',s('receita'),fm),card('Net',s('net'),fm),
   ].join('');
   document.getElementById('eq-cards2').innerHTML=[
-    card('Ativ. 300k+',s('a3p'),fi,'an'),card('Ativ. 300k-',s('a3m'),fi,''),
-    card('Total Ativ.',s('a3p')+s('a3m'),fi,'an'),card('Ativ. PF',s('aPF'),fi,''),card('Ativ. PJ',s('aPJ'),fi,''),
+    card('Ativ. 300k+',s('a3p'),fi),card('Ativ. 300k-',s('a3m'),fi),
+    card('Total Ativ.',s('a3p')+s('a3m'),fi),card('Ativ. PF',s('aPF'),fi),card('Ativ. PJ',s('aPJ'),fi),
   ].join('');
   document.getElementById('eq-cards3').innerHTML=[
-    card('Modelo de Servir',a('modServ'),fd,''),card('Saúde do Cliente',a('saude'),fd,''),card('Clientes Ruptura',s('rupt'),fi,'ar'),
+    card('Modelo de Servir',a('modServ'),fd),card('Saúde do Cliente',a('saude'),fd),card('Clientes Ruptura',s('rupt'),fi),
   ].join('');
   document.getElementById('eq-cards4').innerHTML=[
-    card('R1 Seguros',s('r1'),fi,''),card('R2 Seguros',s('r2'),fi,''),
-    card('Apól. Andamento',s('apolAnd'),fi,''),card('Apól. Emitidas',s('apolEm'),fi,''),
-    card('Reun. Consórcio',s('reuCons'),fi,''),card('Fech. Consórcio',s('feCons'),fi,''),
+    card('R1 Seguros',s('r1'),fi),card('R2 Seguros',s('r2'),fi),
+    card('Apól. Andamento',s('apolAnd'),fi),card('Apól. Emitidas',s('apolEm'),fi),
+    card('Reun. Consórcio',s('reuCons'),fi),card('Fech. Consórcio',s('feCons'),fi),
   ].join('');
 
   // Segmento
@@ -594,13 +603,13 @@ function rMesa(){
 
   // Cards
   document.getElementById('mp-cards').innerHTML=[
-    card('Receita Total Mesa',totalReal,fm,'an'),
-    card('Meta Total Mesa',totalMeta,fm,''),
-    card('% Atingimento Mesa',pctMesa,fp,'',totalMeta?'':'meta não definida'),
-    card('Pace Esperado',paceMesa,fm,'',pace?`${(pace*100).toFixed(0)}% do mês`:''),
-    card('Diferença vs Pace',diffPace,fm,diffPace>=0?'ag':'ar'),
-    card('Maior Receita',0,()=>bestProd,'',''),
-    card('Mais Distante da Meta',0,()=>worstProd,'ar',''),
+    card('Receita Total Mesa',totalReal,fm),
+    card('Meta Total Mesa',totalMeta,fm),
+    card('% Atingimento Mesa',pctMesa,fp,totalMeta?'':'meta não definida'),
+    card('Pace Esperado',paceMesa,fm,pace?`${(pace*100).toFixed(0)}% do mês`:''),
+    card('Diferença vs Pace',diffPace,fm),
+    card('Maior Receita',0,()=>bestProd),
+    card('Mais Distante da Meta',0,()=>worstProd),
   ].join('');
 
   // Tabela produtos
