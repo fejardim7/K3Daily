@@ -235,20 +235,21 @@ const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
 
 /* ═══════════════════════════════════════════════════════
    METAS POR PRODUTO — EDITE AQUI MENSALMENTE
-   Valores em R$ (ex: 500000 = R$ 500 mil)
+   Valores em R$
    ═══════════════════════════════════════════════════════ */
 const PRODUCT_TARGETS={
-  "Renda Fixa":0,
-  "Renda Variável":0,
-  "Cetipados":0,
-  "COE":0,
-  "Internacional":0,
-  "Fundos":0,
-  "Previdência":0,
-  "Fee Fixo":0,
-  "Câmbio":0,
-  "Mesa":0
+  "Renda Fixa":363000,
+  "Renda Variável":165000,
+  "Cetipados":137000,
+  "COE":60000,
+  "Internacional":73000,
+  "Fundos":41000,
+  "Previdência":59000,
+  "Fee Fixo":243000,
+  "Câmbio":152000,
 };
+// Mesa = soma de todos os produtos (calculado automaticamente)
+PRODUCT_TARGETS["Mesa"]=Object.values(PRODUCT_TARGETS).reduce((s,v)=>s+v,0);
 
 /* PRODUCT COLUMN MAP */
 const PROD_COLS={
@@ -345,12 +346,31 @@ function getDataRef(data){
   let mx=null;for(const x of ds){const d=pd(x);if(d&&(!mx||d>mx))mx=d}return mx;
 }
 
-/* Pace: dias corridos */
+/* Pace: dias úteis (seg-sex, sem feriados)
+   Retorna {pct, elapsed, total} */
+function countBizDays(startDay, endDay, month, year){
+  let count=0;
+  for(let d=startDay;d<=endDay;d++){
+    const dow=new Date(year,month,d).getDay();
+    if(dow!==0&&dow!==6)count++;
+  }
+  return count;
+}
 function getPace(dataRef){
   if(!dataRef)return 0;
   const d=dataRef.getDate(),m=dataRef.getMonth(),y=dataRef.getFullYear();
-  const totalDias=new Date(y,m+1,0).getDate();
-  return d/totalDias;
+  const lastDay=new Date(y,m+1,0).getDate();
+  const totalBiz=countBizDays(1,lastDay,m,y);
+  const elapsedBiz=countBizDays(1,d,m,y);
+  return totalBiz>0?elapsedBiz/totalBiz:0;
+}
+function getPaceInfo(dataRef){
+  if(!dataRef)return{pct:0,elapsed:0,total:0};
+  const d=dataRef.getDate(),m=dataRef.getMonth(),y=dataRef.getFullYear();
+  const lastDay=new Date(y,m+1,0).getDate();
+  const total=countBizDays(1,lastDay,m,y);
+  const elapsed=countBizDays(1,d,m,y);
+  return{pct:total>0?elapsed/total:0,elapsed,total};
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -577,7 +597,7 @@ function sortCol(k){if(SORT_COL===k)SORT_ASC=!SORT_ASC;else{SORT_COL=k;SORT_ASC=
    ABA 3: MESA DE PRODUTOS
    ═══════════════════════════════════════════════════════ */
 function rMesa(){
-  const d=D,pace=getPace(DATA_REF);
+  const d=D,pi=getPaceInfo(DATA_REF),pace=pi.pct;
   const prodKeys=Object.keys(PROD_COLS);
   const prodMap={rRF:'Renda Fixa',rRV:'Renda Variável',rCet:'Cetipados',rCOE:'COE',rInt:'Internacional',rFun:'Fundos',rPrev:'Previdência',rFee:'Fee Fixo',rCam:'Câmbio'};
   const fieldMap={'Renda Fixa':'rRF','Renda Variável':'rRV','Cetipados':'rCet','COE':'rCOE','Internacional':'rInt','Fundos':'rFun','Previdência':'rPrev','Fee Fixo':'rFee','Câmbio':'rCam'};
@@ -606,7 +626,7 @@ function rMesa(){
     card('Receita Total Mesa',totalReal,fm),
     card('Meta Total Mesa',totalMeta,fm),
     card('% Atingimento Mesa',pctMesa,fp,totalMeta?'':'meta não definida'),
-    card('Pace Esperado',paceMesa,fm,pace?`${(pace*100).toFixed(0)}% do mês`:''),
+    card('Pace Esperado',paceMesa,fm,pi.total?`${pi.elapsed}/${pi.total} dias úteis (${(pace*100).toFixed(0)}%)`:''),
     card('Diferença vs Pace',diffPace,fm),
     card('Maior Receita',0,()=>bestProd),
     card('Mais Distante da Meta',0,()=>worstProd),
