@@ -76,7 +76,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 
 /* ── table ──────────────────────────────────────── */
 .table-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;background:var(--white)}
-.kt{width:100%;border-collapse:collapse;min-width:640px}
+.kt{width:100%;border-collapse:collapse;min-width:580px;table-layout:fixed}
 
 .kt thead th{
   background:var(--blue);padding:9px 10px;color:rgba(255,255,255,.7);
@@ -131,13 +131,11 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
   background:rgba(30,45,84,.06);padding:1px 6px;border-radius:10px;white-space:nowrap}
 
 /* value cells */
-.vn{text-align:right;font-family:var(--fd);font-size:13px;white-space:nowrap;color:var(--tx)}
-.vn.pos{color:var(--ok);font-weight:600}
-.vn.neg{color:var(--ko);font-weight:600}
-.vn.dim{color:var(--tx2)}
+.vn{text-align:right;font-size:13px;font-weight:600;white-space:nowrap;color:var(--tx)}
+.vn.dim{color:var(--tx2);font-weight:500}
 .vn.sm{font-size:11px}
 
-.meta-cell{text-align:right;font-size:12px;color:var(--tx3);white-space:nowrap}
+.meta-cell{text-align:right;font-size:12px;color:var(--tx);white-space:nowrap}
 .pct-cell{text-align:right;font-size:12px;white-space:nowrap;width:52px;color:var(--tx2)}
 .pct-cell.ok  {color:var(--ok);font-weight:700}
 .pct-cell.warn{color:#92400E;font-weight:700}
@@ -308,7 +306,8 @@ function showTab(id){
 // ── format ────────────────────────────────────────
 function fmtR(v){
   const a=Math.abs(v),s=v<0?'−':'';
-  if(a>=1e6)return s+'R$ '+(a/1e6).toFixed(1)+'M';
+  if(a>=1e9)return s+'R$ '+(a/1e9).toFixed(1)+'Bi';
+  if(a>=1e6)return s+'R$ '+(a/1e6).toFixed(1)+'Mi';
   if(a>=1e3)return s+'R$ '+(a/1e3).toFixed(0)+'k';
   return s+'R$ '+a.toFixed(0);
 }
@@ -337,8 +336,6 @@ function sk(rows,k){return rows.reduce((a,r)=>a+(r[k]||0),0)}
 function cells(v,meta,isCur,invertBad,pace){
   const display=isCur?fmtR(v):fmtN(v);
   const p=meta?Math.round(v/meta*100):null;
-  const bad=meta?(invertBad?v>meta:v<meta):false;
-  const vnCls=meta?(bad?'neg':'pos'):'';
   const pc=p!==null?pColor(p,pace):'';
   const pctTxt=p!==null?p+'%':'';
   let projTxt='',projCls='';
@@ -349,13 +346,14 @@ function cells(v,meta,isCur,invertBad,pace){
   }
   const metaDisplay=meta?(isCur?fmtR(meta):fmtN(meta)):'—';
   const bc=p!==null?pColor(p,pace):'gold';
-  const barW=p!==null?Math.min(p,100):0;
+  // clamp to [0,100] so negative values don't break bar width or heat gradient
+  const pw=p!==null?Math.max(0,Math.min(p,100)):0;
   const pacePx=Math.min(pace,100);
   const barHTML=p!==null
-    ?`<div class="bar-outer"><div class="bar-track"><div class="bar-fill ${bc}" style="width:${barW}%"></div></div><div class="pace-mk" style="left:${pacePx}%"></div></div>`
+    ?`<div class="bar-outer"><div class="bar-track"><div class="bar-fill ${bc}" style="width:${pw}%"></div></div><div class="pace-mk" style="left:${pacePx}%"></div></div>`
     :'';
   const heatCls=p!==null?rowHeat(p):'';
-  return{vnCls,display,pc,pctTxt,projCls,projTxt,metaDisplay,barHTML,heatCls,p};
+  return{vnCls:'',display,pc,pctTxt,projCls,projTxt,metaDisplay,barHTML,heatCls,p,pw};
 }
 
 // ── assessor rows ─────────────────────────────────
@@ -475,7 +473,7 @@ function buildGestor(){
       {id:'rFee',label:'Fee Fixo',      val:t.rFee,cur:true,field:'rFee'},
       {id:'rCam',label:'Câmbio',        val:t.rCam,cur:true,field:'rCam'},
     ]},
-    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:false,field:'apolEm',
+    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true, field:'apolEm',
      subFields:SUB_SEGUROS,
      children:[
       {id:'r1',label:'R1 — Reuniões',val:t.r1,meta:t.metaR1||null,cur:false,field:'r1'},
@@ -496,7 +494,7 @@ function buildGestor(){
     const rowClick=hasC||hasSub?`toggleAssessors('${kpi.id}')`:`toggleLeaf('${kpi.id}')`;
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${kpi.id}')`:`event.stopPropagation();toggleLeaf('${kpi.id}')`;
     const hintHTML=hasC&&hasSub?`<span class="mode-hint">linha = assessores · ▶ = produtos</span>`:'';
-    return`<tr class="r0 ${c.heatCls}" data-id="${kpi.id}" onclick="${rowClick}" style="${c.p!==null?`--w:${Math.min(c.p,100)}%`:''}">
+    return`<tr class="r0 ${c.heatCls}" data-id="${kpi.id}" onclick="${rowClick}" style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
         <span class="chev-p" onclick="${chevClick}">▶</span>
         <span class="kname">${kpi.label}</span>${hintHTML}
@@ -513,7 +511,7 @@ function buildGestor(){
     const hasC=!!(child.children?.length);
     const c=cells(child.val,child.meta||null,child.cur,false,pace.pct);
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${child.id}')`:`event.stopPropagation();toggleSubKPI('${child.id}')`;
-    return`<tr class="r1 hidden ${c.heatCls}" data-id="${child.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child.id}')" style="${c.p!==null?`--w:${Math.min(c.p,100)}%`:''}">
+    return`<tr class="r1 hidden ${c.heatCls}" data-id="${child.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child.id}')" style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
         ${hasC?`<span class="chev-p" onclick="${chevClick}">▶</span>`:`<span style="width:14px;display:inline-block"></span>`}
         <span class="sname">${child.label}</span>
@@ -571,11 +569,11 @@ function buildGestor(){
     <table class="kt">
       <thead><tr>
         <th>Indicador</th>
-        <th class="r">Realizado</th>
-        <th class="r">Meta</th>
-        <th class="c" style="width:56px">% Meta</th>
+        <th class="r" style="width:110px">Realizado</th>
+        <th class="r" style="width:100px">Meta</th>
+        <th class="c" style="width:58px">% Meta</th>
         <th class="c" style="width:68px">Projeção</th>
-        <th class="c" style="width:140px">Progresso</th>
+        <th class="c" style="width:120px">Progresso</th>
       </tr></thead>
       <tbody>${tbody}</tbody>
     </table>
