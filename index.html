@@ -7,220 +7,188 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-/* ── tokens ─────────────────────────────────────── */
 :root {
-  --blue:  #1E2D54;
-  --gold:  #D1A771;
-  --bg:    #0A1526;
-  --s1:    #1E2D54;
-  --s2:    #152038;
-  --s3:    #1c2d50;
-  --s4:    #0e1b30;
-  --hov:   #1a2c4e;
-  --tx:    #EEF2FF;
-  --tx2:   rgba(238,242,255,.52);
-  --tx3:   rgba(238,242,255,.28);
-  --ok:    #3CC98A;
-  --ko:    #E05C5C;
-  --warn:  #F0B429;
-  --gd12:  rgba(209,167,113,.12);
-  --gd22:  rgba(209,167,113,.22);
-  --f:     'Montserrat','Segoe UI',sans-serif;
-  --fd:    'Consolas','Courier New',monospace;
+  --blue:   #1E2D54;
+  --gold:   #D1A771;
+  --bg:     #EEF1F8;
+  --white:  #FFFFFF;
+  --s1:     #F8F9FC;
+  --s2:     #F1F4FA;
+  --s3:     #E8EDF5;
+  --hov:    #E5EBFF;
+  --border: rgba(30,45,84,.10);
+  --tx:     #1E2D54;
+  --tx2:    #5B6F9E;
+  --tx3:    #94A3C0;
+  --ok:     #15803D;
+  --ko:     #B91C1C;
+  --warn:   #92400E;
+  --ok-bg:  rgba(21,128,61,.08);
+  --ko-bg:  rgba(185,28,28,.06);
+  --f:      'Montserrat','Segoe UI',sans-serif;
+  --fd:     'Consolas','Courier New',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:var(--f);font-size:14px;line-height:1.5}
 
 /* ── header ─────────────────────────────────────── */
 header{
-  background:var(--s1);
-  border-bottom:1.5px solid var(--gd22);
+  background:var(--blue);border-bottom:2px solid var(--gold);
   padding:0 28px;display:flex;align-items:center;gap:14px;height:52px;
   position:sticky;top:0;z-index:100;
 }
-.logo{
-  font-weight:800;font-size:16px;letter-spacing:.08em;
-  color:var(--gold);display:flex;align-items:center;gap:8px;
-}
-.logo-sep{width:1px;height:18px;background:var(--gd22)}
-.logo-sub{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--tx2)}
+.logo{font-weight:800;font-size:16px;letter-spacing:.08em;color:var(--gold);display:flex;align-items:center;gap:8px}
+.logo-sep{width:1px;height:18px;background:rgba(209,167,113,.3)}
+.logo-sub{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.hbadge{
-  font-size:11px;font-weight:600;padding:3px 10px;border-radius:3px;
-  border:1px solid var(--gd12);color:var(--tx2);font-family:var(--f);
-}
-.hbadge.pace-ok  {border-color:rgba(60,201,138,.3);color:var(--ok)}
-.hbadge.pace-warn{border-color:rgba(240,180,41,.3);color:var(--warn)}
-.hbadge.pace-ko  {border-color:rgba(224,92,92,.3); color:var(--ko)}
-.hbadge.date-badge{color:var(--gold);border-color:var(--gd22)}
+.hbadge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:3px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-family:var(--f)}
+.hbadge.ok  {border-color:rgba(21,128,61,.5);color:#86efac}
+.hbadge.warn{border-color:rgba(146,64,14,.5);color:#fcd34d}
+.hbadge.ko  {border-color:rgba(185,28,28,.5);color:#fca5a5}
+.hbadge.date{color:var(--gold);border-color:rgba(209,167,113,.3)}
 
 /* ── tabs ───────────────────────────────────────── */
-nav{
-  background:var(--s2);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  padding:0 28px;display:flex;gap:0;
-}
-.tab{
-  padding:10px 20px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;display:flex}
+.tab{padding:11px 20px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
   color:var(--tx3);cursor:pointer;border:none;background:none;font-family:var(--f);
-  border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
-}
+  border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
 .tab:hover{color:var(--tx2)}
-.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-.panel{display:none;padding:28px 28px 60px}
+.tab.active{color:var(--blue);border-bottom-color:var(--gold)}
+.panel{display:none;padding:24px 28px 60px}
 .panel.active{display:block}
 
 /* ── hero strip ─────────────────────────────────── */
-.hero-strip{
-  display:grid;grid-template-columns:1fr 1fr 1fr;
-  gap:1px;background:var(--gd12);
-  border:1px solid var(--gd12);border-radius:6px;
-  overflow:hidden;margin-bottom:24px;
-}
+.hero-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .hero-card{
-  background:var(--s2);padding:20px 22px 18px;
-  display:flex;flex-direction:column;gap:4px;
+  background:var(--white);border:1px solid var(--border);border-radius:8px;
+  padding:18px 20px 14px;border-left:4px solid var(--gold);
 }
-.hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
-.hero-val{font-size:28px;font-weight:800;line-height:1;color:var(--tx);font-family:var(--f)}
+.hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.hero-val{font-size:26px;font-weight:800;line-height:1;color:var(--tx)}
 .hero-val.ok  {color:var(--ok)}
-.hero-val.warn{color:var(--warn)}
+.hero-val.warn{color:#92400E}
 .hero-val.ko  {color:var(--ko)}
-.hero-sub{font-size:11px;font-weight:500;color:var(--tx2);margin-top:2px}
-.hero-sub b{color:var(--gold);font-weight:700}
-.hero-rule{display:flex;align-items:center;gap:6px;margin-top:8px}
-.hero-bar-bg{flex:1;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
-.hero-bar-fill{height:100%;border-radius:2px;transition:width .4s ease}
-.hero-bar-fill.ok  {background:var(--ok)}
-.hero-bar-fill.warn{background:var(--warn)}
-.hero-bar-fill.ko  {background:var(--ko)}
-.hero-bar-fill.gold{background:var(--gold)}
-.hero-pct{font-size:10px;font-weight:700;font-family:var(--fd);color:var(--tx2)}
+.hero-meta{font-size:11px;color:var(--tx2);margin-top:4px}
+.hero-meta b{color:var(--blue);font-weight:700}
+.hero-bar-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.hero-track{flex:1;height:4px;background:rgba(30,45,84,.08);border-radius:2px;overflow:hidden}
+.hero-fill{height:100%;border-radius:2px}
+.hero-fill.ok  {background:var(--ok)}
+.hero-fill.warn{background:#D97706}
+.hero-fill.ko  {background:var(--ko)}
+.hero-fill.gold{background:var(--gold)}
+.hero-pct{font-size:10px;font-weight:700;font-family:var(--fd);color:var(--tx2);min-width:32px;text-align:right}
 
 /* ── team selector ──────────────────────────────── */
-.team-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;align-items:center}
-.team-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-right:8px}
+.team-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;align-items:center}
+.team-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-right:6px}
 .pill{
-  padding:4px 14px;border-radius:3px;border:1px solid rgba(255,255,255,.12);
+  padding:4px 14px;border-radius:4px;border:1.5px solid var(--border);
   font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:var(--f);
   background:transparent;color:var(--tx2);transition:all .12s;
 }
-.pill:hover{border-color:var(--gold);color:var(--gold)}
-.pill.active{background:var(--gold);border-color:var(--gold);color:var(--blue)}
+.pill:hover{border-color:var(--blue);color:var(--blue)}
+.pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
 
-/* ── kpi table ──────────────────────────────────── */
-.table-wrap{
-  border:1px solid var(--gd12);border-radius:6px;
-  overflow:hidden;overflow-x:auto;
-}
-.kt{width:100%;border-collapse:collapse;min-width:580px}
+/* ── legend ─────────────────────────────────────── */
+.legend{display:flex;gap:16px;margin-bottom:10px;font-size:10px;color:var(--tx3);font-weight:600;letter-spacing:.04em}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-icon{font-size:9px;color:var(--tx3)}
+
+/* ── table ──────────────────────────────────────── */
+.table-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;background:var(--white)}
+.kt{width:100%;border-collapse:collapse;min-width:640px}
 
 .kt thead th{
-  background:var(--s1);padding:9px 14px;
+  background:var(--blue);padding:9px 14px;color:rgba(255,255,255,.75);
   font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--tx3);border-bottom:1px solid var(--gd22);white-space:nowrap;
+  border-bottom:1px solid rgba(255,255,255,.08);white-space:nowrap;
 }
 .kt thead th.r{text-align:right}
+.kt thead th.c{text-align:center}
 
-/* row families — no alternating zebra, hierarchy via indent + bg shade */
-.kt tr.r0 td{
-  padding:11px 14px;background:var(--s2);
-  border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;
-  transition:background .12s;
-}
+/* row families */
+.kt tr.r0 td{padding:11px 14px;background:var(--white);border-bottom:1px solid var(--border);vertical-align:middle}
 .kt tr.r0{cursor:pointer}
-.kt tr.r0:hover td,.kt tr.r0.open td{background:var(--hov)}
-/* gold hairline when open */
-.kt tr.r0.open td:first-child{border-left:2px solid var(--gold)}
+.kt tr.r0:hover td{background:var(--hov)}
+
+/* assessor mode: gold left border on parent */
+.kt tr.r0.open-a>td:first-child{border-left:3px solid var(--gold)}
+/* product mode: chevron rotates */
+.kt tr.r0.open-p .chev-p,.kt tr.r1.open-p .chev-p{transform:rotate(90deg)}
+.kt tr.r0.open-a .chev-p,.kt tr.r1.open-a .chev-p{color:var(--gold)}
 
 .kt tr.r1{cursor:pointer}
-.kt tr.r1 td{
-  padding:9px 14px 9px 34px;background:var(--s3);
-  border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;
-}
-.kt tr.r1:hover td,.kt tr.r1.open td{background:var(--hov)}
-.kt tr.r1.open td:first-child{border-left:2px solid rgba(209,167,113,.4)}
+.kt tr.r1 td{padding:9px 14px 9px 32px;background:var(--s1);border-bottom:1px solid var(--border);vertical-align:middle}
+.kt tr.r1:hover td{background:var(--hov)}
+.kt tr.r1.open-a>td:first-child{border-left:2px solid rgba(209,167,113,.5)}
 
-.kt tr.r2 td{
-  padding:8px 14px 8px 52px;background:var(--s4);
-  border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;
-}
 .kt tr.r2{cursor:pointer}
-.kt tr.r2:hover td,.kt tr.r2.open td{background:#131f38}
-.kt tr.r2.open td:first-child{border-left:2px solid rgba(209,167,113,.2)}
+.kt tr.r2 td{padding:8px 14px 8px 50px;background:var(--s2);border-bottom:1px solid rgba(30,45,84,.05);vertical-align:middle}
+.kt tr.r2:hover td{background:var(--hov)}
+.kt tr.r2.open-a>td:first-child{border-left:2px solid rgba(209,167,113,.3)}
 
-.kt tr.ra td{
-  padding:7px 14px 7px 42px;background:var(--s4);
-  border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;
-}
-.kt tr.ra:last-of-type td{border-bottom:1px solid var(--gd12)}
+/* assessor row */
+.kt tr.ra td{padding:7px 14px 7px 40px;background:var(--s2);border-bottom:1px solid rgba(30,45,84,.05);vertical-align:middle;cursor:default}
+.kt tr.ra[data-has-detail="1"]{cursor:pointer}
+.kt tr.ra[data-has-detail="1"]:hover td{background:var(--s3)}
+.kt tr.ra.open-a>td:first-child{border-left:2px solid rgba(209,167,113,.25)}
+
+/* assessor detail (sub-product per assessor) */
+.kt tr.ra-detail td{padding:6px 14px 6px 60px;background:var(--s3);border-bottom:1px solid rgba(30,45,84,.04);vertical-align:middle}
 
 .kt tr.hidden{display:none}
 
-/* row heat: gradient applied inline on each tr via JS */
 /* labels */
-.lbl{display:flex;align-items:center;gap:8px}
-.chev{
-  width:12px;height:12px;flex-shrink:0;
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:8px;color:var(--gold);transition:transform .18s;flex-shrink:0;
-}
-.open .chev{transform:rotate(90deg)}
+.lbl{display:flex;align-items:center;gap:7px}
+.chev-p{width:14px;height:14px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--tx3);transition:transform .18s;cursor:pointer}
 .kname {font-weight:600;font-size:13px;color:var(--tx)}
 .sname {font-weight:500;font-size:12px;color:var(--tx2)}
 .ssname{font-weight:500;font-size:11px;color:var(--tx3)}
-.aname {font-size:11px;font-weight:500;color:var(--tx3)}
-.a-dot {width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0}
+.aname {font-size:12px;font-weight:500;color:var(--tx2)}
+.a-dot {width:5px;height:5px;border-radius:50%;background:var(--tx3);flex-shrink:0}
+.mode-hint{font-size:9px;color:var(--tx3);font-weight:500;margin-left:4px;
+  background:rgba(30,45,84,.06);padding:1px 6px;border-radius:10px;white-space:nowrap}
 
-/* number cells */
+/* value cells */
 .vn{text-align:right;font-family:var(--fd);font-size:13px;white-space:nowrap;color:var(--tx)}
-.vn.pos{color:var(--ok)}
-.vn.neg{color:var(--ko)}
-.vn.dim{color:var(--tx3)}
+.vn.pos{color:var(--ok);font-weight:600}
+.vn.neg{color:var(--ko);font-weight:600}
+.vn.dim{color:var(--tx2)}
+.vn.sm{font-size:11px}
 
-.pct-cell{
-  text-align:right;font-family:var(--fd);font-size:12px;white-space:nowrap;
-  color:var(--tx2);width:52px;
-}
-.pct-cell.c-ok  {color:var(--ok)}
-.pct-cell.c-warn{color:var(--warn)}
-.pct-cell.c-ko  {color:var(--ko)}
+.meta-cell{text-align:right;font-family:var(--fd);font-size:12px;color:var(--tx3);white-space:nowrap;min-width:80px}
+.pct-cell{text-align:right;font-family:var(--fd);font-size:12px;white-space:nowrap;width:54px;color:var(--tx2)}
+.pct-cell.ok  {color:var(--ok);font-weight:700}
+.pct-cell.warn{color:#92400E;font-weight:700}
+.pct-cell.ko  {color:var(--ko);font-weight:700}
+.proj-cell{text-align:right;font-family:var(--fd);font-size:12px;font-weight:700;white-space:nowrap;width:64px;color:var(--tx3)}
+.proj-cell.ok  {color:var(--ok)}
+.proj-cell.warn{color:#92400E}
+.proj-cell.ko  {color:var(--ko)}
 
-.proj-cell{
-  text-align:right;font-family:var(--fd);font-size:12px;font-weight:700;white-space:nowrap;
-  color:var(--tx3);width:62px;
-}
-.proj-cell.c-ok  {color:var(--ok)}
-.proj-cell.c-warn{color:var(--warn)}
-.proj-cell.c-ko  {color:var(--ko)}
-
-.meta-cell{
-  text-align:right;font-family:var(--fd);font-size:11px;
-  color:var(--tx3);white-space:nowrap;min-width:80px;
-}
-
-/* ── progress bar (last column) ─────────────────── */
-.bar-col{width:120px;padding:0 10px !important}
-.bar-outer{position:relative;height:6px}
-.bar-track{position:absolute;inset:1px 0;background:rgba(255,255,255,.10);border-radius:2px;overflow:hidden}
+/* progress bar */
+.bar-col{width:130px;padding:0 12px !important}
+.bar-outer{position:relative;height:7px}
+.bar-track{position:absolute;inset:1.5px 0;background:rgba(30,45,84,.07);border-radius:2px;overflow:hidden}
 .bar-fill{height:100%;border-radius:2px;transition:width .35s ease}
-.bar-fill.c-ok  {background:var(--ok)}
-.bar-fill.c-warn{background:var(--warn)}
-.bar-fill.c-ko  {background:var(--ko)}
-.bar-fill.c-gold{background:var(--gold)}
-.pace-mk{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.5);border-radius:1px;transform:translateX(-50%)}
+.bar-fill.ok  {background:var(--ok)}
+.bar-fill.warn{background:#D97706}
+.bar-fill.ko  {background:var(--ko)}
+.pace-mk{position:absolute;top:0;bottom:0;width:2px;background:rgba(30,45,84,.25);border-radius:1px;transform:translateX(-50%)}
 
-/* ── placeholder / loader ───────────────────────── */
-.placeholder{display:flex;align-items:center;justify-content:center;
-  height:200px;border-radius:6px;border:1px dashed var(--gd12);
-  color:var(--tx2);font-size:13px;font-weight:500}
+/* row heat (subtle tint) */
+.heat-ok  {background:linear-gradient(90deg,var(--ok-bg) var(--w,0%),transparent var(--w,0%)) !important}
+.heat-warn{background:linear-gradient(90deg,rgba(217,119,6,.06) var(--w,0%),transparent var(--w,0%)) !important}
+.heat-ko  {background:linear-gradient(90deg,var(--ko-bg) var(--w,0%),transparent var(--w,0%)) !important}
+
+/* loader */
+.placeholder{display:flex;align-items:center;justify-content:center;height:200px;border-radius:8px;border:1px dashed var(--border);color:var(--tx3);font-size:13px;font-weight:500}
 #loader{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:var(--tx2);font-size:12px;font-weight:600;letter-spacing:.06em}
-.spin{width:16px;height:16px;border:2px solid var(--gd12);border-top-color:var(--gold);border-radius:50%;animation:sp .65s linear infinite}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:sp .65s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-
-@media(prefers-reduced-motion:reduce){
-  *{transition:none!important;animation:none!important}
-}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -229,7 +197,7 @@ nav{
   <div class="logo">K3<div class="logo-sep"></div><span class="logo-sub">Daily</span></div>
   <div class="header-right">
     <span id="pace-badge" class="hbadge">—</span>
-    <span id="date-badge" class="hbadge date-badge">—</span>
+    <span id="date-badge" class="hbadge date">—</span>
   </div>
 </header>
 
@@ -240,48 +208,46 @@ nav{
   <button class="tab" onclick="showTab('qualidade')">Qualidade</button>
 </nav>
 
-<div id="panel-gestor" class="panel active">
-  <div id="loader"><div class="spin"></div>&nbsp;Carregando</div>
-</div>
-<div id="panel-produto"  class="panel"><div class="placeholder">Em breve — Por Produto</div></div>
-<div id="panel-equipe"   class="panel"><div class="placeholder">Em breve — Por Equipe</div></div>
+<div id="panel-gestor" class="panel active"><div id="loader"><div class="spin"></div>&nbsp;Carregando</div></div>
+<div id="panel-produto"   class="panel"><div class="placeholder">Em breve — Por Produto</div></div>
+<div id="panel-equipe"    class="panel"><div class="placeholder">Em breve — Por Equipe</div></div>
 <div id="panel-qualidade" class="panel"><div class="placeholder">Em breve — Qualidade</div></div>
 
 <script>
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS_nh83QnSTkoyrf8utSgJaYLet2rbixbZw7wMMnFtyefFNOAquXH5UkW-Hu2cN7EzQgOGYCGnGSKI8/pub?output=csv';
 
-const DEMO_CSV = `Equipe,Nome Assessor,Cod A,Cap. Liq. Total,Captação PF,Cap. Onshore PME Middle,Cap. Onshore Corporate,Ativação PF,Ativação PJ,Ativação 300k+,Ativação 300k-,Receita no Mês,Receita Renda Fixa,Receita Renda Variável,Receita Cetipados,Receita COE,Receita Internacional,Receita Fundos,Receita Previdência,Receita Fee Fixo,Receita Câmbio,R1 Seguros,R2 Seguros,Apolice Emitida,Fechamento Consórcio,Modelo de Servir,Saúde do Cliente,Clientes em Ruptura,NPS,AuC PF,AuC PJ,Meta Cap Liq,Meta Receita,Data Atualização
-Alpha,João Silva,A01,1200000,900000,200000,100000,3,1,2,2,45000,12000,8000,5000,4000,3000,2000,5000,4000,2000,3,1,2,1,85,120,2,90,8000000,2000000,1500000,60000,22/06/2026
-Alpha,Maria Santos,A02,980000,750000,150000,80000,2,0,1,1,38000,10000,7000,4000,3000,2500,1800,4500,3200,2000,2,0,1,1,80,110,3,88,7000000,1500000,1200000,50000,22/06/2026
-Alpha,Pedro Costa,A03,1450000,1100000,250000,100000,4,2,3,3,52000,14000,9000,6000,5000,3500,2200,6000,4300,2000,4,2,3,2,90,130,1,92,9500000,2500000,1800000,65000,22/06/2026
-Beta,Ana Oliveira,B01,800000,600000,120000,80000,2,1,2,1,32000,9000,5000,3500,2500,2000,1500,3800,2700,2000,2,1,1,1,78,100,4,85,6000000,1200000,1000000,42000,22/06/2026
-Beta,Carlos Lima,B02,650000,500000,100000,50000,1,0,1,0,28000,7500,4500,3000,2000,1800,1200,3200,2800,2000,1,0,0,0,72,95,5,82,5000000,1000000,900000,38000,22/06/2026
-Beta,Fernanda Reis,B03,920000,700000,140000,80000,3,1,2,2,36000,9500,6000,4000,3000,2200,1600,4200,3500,2000,3,1,2,1,82,115,2,89,6800000,1400000,1100000,46000,22/06/2026
-Gamma,Roberto Nunes,C01,1100000,850000,180000,70000,2,1,2,1,40000,11000,7500,4500,3500,2800,1900,4800,3000,2000,2,1,1,1,88,125,1,91,7500000,2000000,1400000,55000,22/06/2026
-Gamma,Luciana Prado,C02,750000,580000,110000,60000,1,0,1,1,30000,8000,5000,3200,2200,1900,1400,3500,2700,2000,1,0,0,1,76,98,3,86,5500000,1100000,950000,40000,22/06/2026`;
+// Demo com estrutura exata do Consolidado
+const DEMO_CSV = `Equipe,Nome Assessor,Cod A,Cap. Liq. Total,Cap. Onshore PME Middle,Cap. Onshore Corporate,Ativação PF 300k+,Ativação PF 300k-,Ativação PJ 300k+,Ativação PJ 300k-,Meta Ativação 300k+,Ativação PF,Ativação PJ,Captação PF,Captação PJ,Receita no Mês,Net Em M,R1 Seguros,R2 Seguros,Apolice em Andamento,Apolice Emitida,Reuniões Consórcio,Consórcio em Andamento,Fechamento Consórcio,Modelo de Servir,Clientes em Ruptura,Saúde do Cliente,Data Atualização,Receita Renda Fixa,Receita Renda Variável,Receita Cetipados,Receita COE,Receita Internacional,Receita Fundos,Receita Previdência,Receita Fee Fixo,Receita Câmbio,NPS Sem Resposta,NPS Respondidos,Meta Cap Liquida PF,Meta Cap Liquida PJ,Meta Cap Liquida Total,Meta Modelo de Servir,Meta Saúde do Cliente,Meta Ruptura,Meta PA Seguros,Meta R1 Seguros,Meta R2 Seguros,Meta Consórcio,Meta Ativação 300-,Meta Ativações Total,Meta Nota NPS
+Alpha,João Silva,A01,1200000,200000,100000,2,2,1,0,4,3,1,900000,300000,45000,8000000,3,1,0,2,0,0,1,85,2,120,22/06/2026,12000,8000,5000,4000,3000,2000,5000,4000,2000,1,0,900000,300000,1500000,80,110,5,4,6,2,2,4,6,85
+Alpha,Maria Santos,A02,980000,150000,80000,1,1,0,0,3,2,0,750000,230000,38000,7000000,2,0,0,1,0,0,1,80,3,110,22/06/2026,10000,7000,4000,3000,2500,1800,4500,3200,2000,0,0,700000,250000,1200000,80,110,5,3,5,2,1,3,5,85
+Alpha,Pedro Costa,A03,1450000,250000,100000,3,3,2,1,5,4,2,1100000,350000,52000,9500000,4,2,0,3,0,1,2,90,1,130,22/06/2026,14000,9000,6000,5000,3500,2200,6000,4300,2000,0,1,1000000,350000,1800000,80,110,5,5,7,3,2,4,6,85
+Beta,Ana Oliveira,B01,800000,120000,80000,2,1,1,0,3,2,1,600000,200000,32000,6000000,2,1,0,1,0,0,1,78,4,100,22/06/2026,9000,5000,3500,2500,2000,1500,3800,2700,2000,1,0,550000,200000,1000000,80,110,5,3,4,2,1,3,4,85
+Beta,Carlos Lima,B02,650000,100000,50000,1,0,0,0,2,1,0,500000,150000,28000,5000000,1,0,0,0,0,0,0,72,5,95,22/06/2026,7500,4500,3000,2000,1800,1200,3200,2800,2000,0,0,450000,150000,900000,80,110,5,2,3,1,1,2,3,85
+Beta,Fernanda Reis,B03,920000,140000,80000,2,2,1,1,3,3,1,700000,220000,36000,6800000,3,1,0,2,0,0,1,82,2,115,22/06/2026,9500,6000,4000,3000,2200,1600,4200,3500,2000,0,0,620000,220000,1100000,80,110,5,3,5,2,1,3,4,85
+Gamma,Roberto Nunes,C01,1100000,180000,70000,2,1,1,0,3,2,1,850000,250000,40000,7500000,2,1,0,1,0,0,1,88,1,125,22/06/2026,11000,7500,4500,3500,2800,1900,4800,3000,2000,0,1,800000,250000,1400000,80,110,5,3,4,2,1,3,4,85
+Gamma,Luciana Prado,C02,750000,110000,60000,1,1,0,0,2,1,0,580000,170000,30000,5500000,1,0,0,0,0,0,1,76,3,98,22/06/2026,8000,5000,3200,2200,1900,1400,3500,2700,2000,1,0,530000,170000,950000,80,110,5,2,3,1,1,2,3,85`;
 
 // ── pace ─────────────────────────────────────────
 function calcPace(){
-  const now = new Date();
-  const y=now.getFullYear(), m=now.getMonth(), todayD=now.getDate();
-  const dim = new Date(y,m+1,0).getDate();
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
+  const dim=new Date(y,m+1,0).getDate();
   let total=0,elapsed=0;
-  for(let d=1;d<=dim;d++){
-    const dow=new Date(y,m,d).getDay();
-    if(dow!==0&&dow!==6){ total++; if(d<=todayD) elapsed++; }
+  for(let i=1;i<=dim;i++){
+    const dow=new Date(y,m,i).getDay();
+    if(dow!==0&&dow!==6){total++;if(i<=d)elapsed++;}
   }
-  return {elapsed,total,pct:total?Math.round(elapsed/total*100):0};
+  return{elapsed,total,pct:total?Math.round(elapsed/total*100):0};
 }
 
 // ── helpers ───────────────────────────────────────
-function g(r,c){ return (r[c]||'').trim() }
-function pn(v){ return parseFloat((v||'0').replace(/\./g,'').replace(',','.'))||0 }
+function g(r,c){return(r[c]||'').trim()}
+function pn(v){return parseFloat((v||'0').replace(/\./g,'').replace(',','.'))||0}
 
 function parseCSV(text){
   const lines=text.trim().split('\n');
   const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
   return lines.slice(1).map(line=>{
-    const cells=[]; let inQ=false,cell='';
+    const cells=[];let inQ=false,cell='';
     for(const ch of line){
       if(ch==='"'){inQ=!inQ;continue}
       if(ch===','&&!inQ){cells.push(cell.trim());cell='';continue}
@@ -298,15 +264,18 @@ function mapRows(rows){
   return rows.map(r=>({
     equipe:  g(r,'Equipe'),
     nome:    g(r,'Nome Assessor'),
+    cod:     g(r,'Cod A'),
     capLiq:  pn(g(r,'Cap. Liq. Total')),
     capPF:   pn(g(r,'Captação PF')),
-    capPJ:   pn(g(r,'Cap. Liq. Total'))-pn(g(r,'Captação PF')),
+    capPJ:   pn(g(r,'Captação PJ')),
     pme:     pn(g(r,'Cap. Onshore PME Middle')),
     corp:    pn(g(r,'Cap. Onshore Corporate')),
     aPF:     pn(g(r,'Ativação PF')),
+    a3p:     pn(g(r,'Ativação PF 300k+')),
+    a3m:     pn(g(r,'Ativação PF 300k-')),
     aPJ:     pn(g(r,'Ativação PJ')),
-    a3p:     pn(g(r,'Ativação 300k+')),
-    a3m:     pn(g(r,'Ativação 300k-')),
+    a3pPJ:   pn(g(r,'Ativação PJ 300k+')),
+    a3mPJ:   pn(g(r,'Ativação PJ 300k-')),
     receita: pn(g(r,'Receita no Mês')),
     rRF:     pn(g(r,'Receita Renda Fixa')),
     rRV:     pn(g(r,'Receita Renda Variável')),
@@ -317,18 +286,31 @@ function mapRows(rows){
     rPrev:   pn(g(r,'Receita Previdência')),
     rFee:    pn(g(r,'Receita Fee Fixo')),
     rCam:    pn(g(r,'Receita Câmbio')),
+    netEmM:  pn(g(r,'Net Em M')),           // AUC total
     r1:      pn(g(r,'R1 Seguros')),
     r2:      pn(g(r,'R2 Seguros')),
     apolEm:  pn(g(r,'Apolice Emitida')),
     feCons:  pn(g(r,'Fechamento Consórcio')),
+    conAnd:  pn(g(r,'Consórcio em Andamento')),
     modServ: pn(g(r,'Modelo de Servir')),
     saude:   pn(g(r,'Saúde do Cliente')),
     rupt:    pn(g(r,'Clientes em Ruptura')),
-    nps:     pn(g(r,'NPS')),
-    aucPF:   pn(g(r,'AuC PF')),
-    aucPJ:   pn(g(r,'AuC PJ')),
-    metaCapLiq:  pn(g(r,'Meta Cap Liq')),
-    metaReceita: pn(g(r,'Meta Receita')),
+    npsNR:   pn(g(r,'NPS Sem Resposta')),
+    npsResp: pn(g(r,'NPS Respondidos')),
+    metaCapLiq:    pn(g(r,'Meta Cap Liquida Total')),
+    metaCapPF:     pn(g(r,'Meta Cap Liquida PF')),
+    metaCapPJ:     pn(g(r,'Meta Cap Liquida PJ')),
+    metaReceita:   pn(g(r,'Meta Receita')),
+    metaModServ:   pn(g(r,'Meta Modelo de Servir')),
+    metaSaude:     pn(g(r,'Meta Saúde do Cliente')),
+    metaRupt:      pn(g(r,'Meta Ruptura')),
+    metaPASeg:     pn(g(r,'Meta PA Seguros')),
+    metaR1:        pn(g(r,'Meta R1 Seguros')),
+    metaR2:        pn(g(r,'Meta R2 Seguros')),
+    metaCons:      pn(g(r,'Meta Consórcio')),
+    metaAtiv300m:  pn(g(r,'Meta Ativação 300-')),
+    metaAtivTotal: pn(g(r,'Meta Ativações Total')),
+    metaNPS:       pn(g(r,'Meta Nota NPS')),
     dtAtual: g(r,'Data Atualização'),
   }));
 }
@@ -346,139 +328,183 @@ function showTab(id){
 
 // ── format ────────────────────────────────────────
 function fmtR(v){
-  const a=Math.abs(v),s=v<0?'-':'';
-  if(a>=1e6) return s+'R$ '+(a/1e6).toFixed(1)+'M';
-  if(a>=1e3) return s+'R$ '+(a/1e3).toFixed(0)+'k';
+  const a=Math.abs(v),s=v<0?'−':'';
+  if(a>=1e6)return s+'R$ '+(a/1e6).toFixed(1)+'M';
+  if(a>=1e3)return s+'R$ '+(a/1e3).toFixed(0)+'k';
   return s+'R$ '+a.toFixed(0);
 }
-function fmtN(v){ return v%1===0?v.toLocaleString('pt-BR'):v.toFixed(1) }
+function fmtN(v){return v%1===0?v.toLocaleString('pt-BR'):v.toFixed(1)}
 
 function pColor(p,pace){
-  if(p>=100) return 'c-ok';
-  if(p>=(pace-5)) return 'c-warn';
-  return 'c-ko';
+  if(p>=100)return'ok';
+  if(p>=(pace-5))return'warn';
+  return'ko';
 }
-function projColor(p){
-  if(p>=100) return 'c-ok';
-  if(p>=85)  return 'c-warn';
-  return 'c-ko';
-}
+function projColor(p){return p>=100?'ok':p>=85?'warn':'ko'}
 
-// ── row heat (background fill = progress) ─────────
+// ── row heat ──────────────────────────────────────
 function rowHeat(p){
-  if(!p) return '';
-  const w=Math.min(p,100);
-  let c;
-  if(p>=100)      c='rgba(60,201,138,.055)';
-  else if(p>=60)  c='rgba(209,167,113,.05)';
-  else            c='rgba(224,92,92,.05)';
-  return `background:linear-gradient(90deg,${c} ${w}%,transparent ${w}%)`;
+  if(!p&&p!==0)return'';
+  const w=Math.min(Math.max(p,0),100);
+  const cls=p>=100?'ok':p>=60?'warn':'ko';
+  return`heat-${cls}`;
 }
 
 // ── sum ───────────────────────────────────────────
-function sk(rows,k){ return rows.reduce((a,r)=>a+(r[k]||0),0) }
+function sk(rows,k){return rows.reduce((a,r)=>a+(r[k]||0),0)}
 
-// ── cell set: Realizado | Meta | % Meta | Projeção | Progresso ──
-function cells(v, meta, isCur, invertBad, pace){
-  const display = isCur ? fmtR(v) : fmtN(v);
-  const p = meta ? Math.round(v/meta*100) : null;
-  const bad = meta ? (invertBad ? v>meta : v<meta) : false;
-  const vnCls = meta ? (bad?'neg':'pos') : '';
-  const pc = p!==null ? pColor(p,pace) : '';
-  const pctTxt = p!==null ? p+'%' : '';
-  let projTxt='', projCls='';
-  if(meta && pace>0){
+// ── cells ─────────────────────────────────────────
+// Returns object with all cell HTML: Realizado | Meta | % Meta | Projeção | Progresso
+function cells(v,meta,isCur,invertBad,pace){
+  const display=isCur?fmtR(v):fmtN(v);
+  const p=meta?Math.round(v/meta*100):null;
+  const bad=meta?(invertBad?v>meta:v<meta):false;
+  const vnCls=meta?(bad?'neg':'pos'):'';
+  const pc=p!==null?pColor(p,pace):'';
+  const pctTxt=p!==null?p+'%':'';
+  let projTxt='',projCls='';
+  if(meta&&pace>0){
     const proj=Math.round((v/meta)/(pace/100)*100);
     projCls=projColor(proj);
     projTxt=proj+'%';
   }
-  const metaDisplay = meta ? (isCur?fmtR(meta):fmtN(meta)) : '—';
-  const bc = p!==null ? pColor(p,pace) : 'c-gold';
-  const barW = p!==null ? Math.min(p,100) : 0;
-  const pacePx = Math.min(pace,100);
-  const barHTML = p!==null
-    ? `<div class="bar-outer"><div class="bar-track"><div class="bar-fill ${bc}" style="width:${barW}%"></div></div><div class="pace-mk" style="left:${pacePx}%"></div></div>`
-    : '';
-  return {vnCls, display, pc, pctTxt, projCls, projTxt, metaDisplay, barHTML, p};
+  const metaDisplay=meta?(isCur?fmtR(meta):fmtN(meta)):'—';
+  const bc=p!==null?pColor(p,pace):'gold';
+  const barW=p!==null?Math.min(p,100):0;
+  const pacePx=Math.min(pace,100);
+  const barHTML=p!==null
+    ?`<div class="bar-outer"><div class="bar-track"><div class="bar-fill ${bc}" style="width:${barW}%"></div></div><div class="pace-mk" style="left:${pacePx}%"></div></div>`
+    :'';
+  const heatCls=p!==null?rowHeat(p):'';
+  return{vnCls,display,pc,pctTxt,projCls,projTxt,metaDisplay,barHTML,heatCls,p};
 }
 
 // ── assessor rows ─────────────────────────────────
-function aRows(kpiId, field, isCur, rows){
-  return rows.map(a=>{
-    const v = field==='auc' ? a.aucPF+a.aucPJ : (a[field]!==undefined?a[field]:0);
-    const d = isCur?fmtR(v):fmtN(v);
-    return `<tr class="ra hidden" data-for="${kpiId}">
-      <td><div class="lbl"><span class="a-dot"></span><span class="aname">${a.nome}</span></div></td>
-      <td class="vn dim">${d}</td>
-      <td class="meta-cell"></td>
-      <td class="pct-cell"></td>
-      <td class="proj-cell"></td>
-      <td class="bar-col"></td>
-    </tr>`;
+// subFields: [{label, field, cur}] for drill-down within an assessor
+function aRows(kpiId,field,isCur,rows,subFields){
+  const hasSub=subFields&&subFields.length>0;
+  return rows.map((a,idx)=>{
+    const v=field==='netEmM'?a.netEmM:(a[field]!==undefined?a[field]:0);
+    const display=isCur?fmtR(v):fmtN(v);
+
+    const detailHtml=hasSub?subFields.map(sf=>{
+      const sv=a[sf.field]!==undefined?a[sf.field]:0;
+      const sd=sf.cur?fmtR(sv):fmtN(sv);
+      return`<tr class="ra-detail hidden" data-for-a="${kpiId}" data-aid="${idx}">
+        <td><div class="lbl"><span class="a-dot"></span><span class="aname" style="font-size:11px">${sf.label}</span></div></td>
+        <td class="vn dim sm">${sd}</td>
+        <td class="meta-cell"></td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+      </tr>`;
+    }).join(''):'';
+
+    const chevron=hasSub?`<span class="chev-p" style="font-size:8px">▶</span>`:`<span class="a-dot"></span>`;
+    return`<tr class="ra hidden" data-for="${kpiId}" data-aid="${idx}" data-has-detail="${hasSub?1:0}"${hasSub?` onclick="toggleAssessorDetail('${kpiId}',${idx})"`:''}>
+      <td><div class="lbl">${chevron}<span class="aname">${a.nome}</span></div></td>
+      <td class="vn dim">${display}</td>
+      <td class="meta-cell"></td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+    </tr>${detailHtml}`;
   }).join('');
 }
 
 // ── hero card ─────────────────────────────────────
-function heroCard(eyebrow, val, meta, isCur, pace){
-  const display = isCur?fmtR(val):'—';
-  const p = meta ? Math.round(val/meta*100) : null;
-  const cls = p!==null ? pColor(p,pace) : '';
-  const w = p!==null ? Math.min(p,100) : 0;
-  const proj = (meta&&pace>0) ? Math.round((val/meta)/(pace/100)*100) : null;
-  const metaFmt = meta ? (isCur?fmtR(meta):fmtN(meta)) : null;
-  return `<div class="hero-card">
+function heroCard(eyebrow,val,meta,isCur,pace,isCount){
+  const display=isCount?fmtN(val):(isCur?fmtR(val):'—');
+  const p=meta?Math.round(val/meta*100):null;
+  const cls=p!==null?pColor(p,pace):'';
+  const proj=meta&&pace>0?Math.round((val/meta)/(pace/100)*100):null;
+  const metaFmt=meta?(isCount?fmtN(meta):fmtR(meta)):null;
+  const barW=p!==null?Math.min(p,100):0;
+  return`<div class="hero-card">
     <div class="hero-eyebrow">${eyebrow}</div>
     <div class="hero-val ${cls}">${display}</div>
-    ${metaFmt ? `<div class="hero-sub">de <b>${metaFmt}</b> · ${proj!==null?'projeção '+proj+'%':''}</div>` : '<div class="hero-sub">&nbsp;</div>'}
-    ${p!==null ? `<div class="hero-rule">
-      <div class="hero-bar-bg"><div class="hero-bar-fill ${cls}" style="width:${w}%"></div></div>
-      <span class="hero-pct ${cls}">${p}%</span>
-    </div>` : ''}
+    <div class="hero-meta">${metaFmt?`de <b>${metaFmt}</b>${proj!==null?' · proj. '+proj+'%':''}`:'&nbsp;'}</div>
+    ${p!==null?`<div class="hero-bar-row">
+      <div class="hero-track"><div class="hero-fill ${cls}" style="width:${barW}%"></div></div>
+      <span class="hero-pct">${p}%</span>
+    </div>`:''}
   </div>`;
 }
 
-// ── build gestor ──────────────────────────────────
+// ── build Visão Gestor ────────────────────────────
 function buildGestor(){
-  const panel = document.getElementById('panel-gestor');
-  const teams = [...new Set(allData.map(r=>r.equipe).filter(Boolean))].sort();
-  const rows  = selectedTeam==='ALL' ? allData : allData.filter(r=>r.equipe===selectedTeam);
-  const pace  = calcPace();
+  const panel=document.getElementById('panel-gestor');
+  const teams=[...new Set(allData.map(r=>r.equipe).filter(Boolean))].sort();
+  const rows=selectedTeam==='ALL'?allData:allData.filter(r=>r.equipe===selectedTeam);
+  const pace=calcPace();
+  const n=rows.length||1;
 
   // header badges
-  const pb = document.getElementById('pace-badge');
-  const paceCls = pace.pct>=100?'ok':pace.pct>=70?'warn':'ko';
-  pb.textContent = `${pace.pct}% pace · D${pace.elapsed}/${pace.total}`;
-  pb.className = `hbadge pace-${paceCls}`;
-  const dt = rows[0]?.dtAtual||'';
-  if(dt) document.getElementById('date-badge').textContent = dt;
+  const pb=document.getElementById('pace-badge');
+  const pcls=pace.pct>=100?'ok':pace.pct>=70?'warn':'ko';
+  pb.textContent=`Pace ${pace.pct}% · D${pace.elapsed}/${pace.total}`;
+  pb.className=`hbadge ${pcls}`;
+  const dt=rows[0]?.dtAtual||'';
+  if(dt)document.getElementById('date-badge').textContent=dt;
 
   // aggregates
   const t={};
-  ['capLiq','capPF','capPJ','pme','corp','aPF','aPJ','a3p','a3m',
+  ['capLiq','capPF','capPJ','pme','corp',
+   'aPF','a3p','a3m','aPJ','a3pPJ','a3mPJ',
    'receita','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
-   'r1','r2','apolEm','feCons','modServ','saude','rupt','nps','aucPF','aucPJ',
-   'metaCapLiq','metaReceita'].forEach(k=>t[k]=sk(rows,k));
-  const capMeta=t.metaCapLiq||null, recMeta=t.metaReceita||null;
+   'netEmM','r1','r2','apolEm','feCons','conAnd',
+   'modServ','saude','rupt','npsNR','npsResp',
+   'metaCapLiq','metaCapPF','metaCapPJ','metaReceita',
+   'metaModServ','metaSaude','metaRupt','metaPASeg',
+   'metaR1','metaR2','metaCons','metaAtiv300m','metaAtivTotal','metaNPS',
+  ].forEach(k=>t[k]=sk(rows,k));
 
-  // kpi tree
+  const capMeta  = t.metaCapLiq  ||null;
+  const recMeta  = t.metaReceita ||null;
+  const ativ300k = t.a3p + t.a3pPJ; // PF 300k+ + PJ 300k+
+  const metaModServAvg = t.metaModServ?t.metaModServ/n:null;
+  const metaSaudeAvg   = t.metaSaude  ?t.metaSaude  /n:null;
+
+  // Sub-fields para cascata dupla (por assessor → breakdown do assessor)
+  const SUB_RECEITA=[
+    {label:'Renda Fixa',    field:'rRF', cur:true},
+    {label:'Renda Variável',field:'rRV', cur:true},
+    {label:'Cetipados',     field:'rCet',cur:true},
+    {label:'COE',           field:'rCOE',cur:true},
+    {label:'Internacional', field:'rInt',cur:true},
+    {label:'Fundos',        field:'rFun',cur:true},
+    {label:'Previdência',   field:'rPrev',cur:true},
+    {label:'Fee Fixo',      field:'rFee',cur:true},
+    {label:'Câmbio',        field:'rCam',cur:true},
+  ];
+  const SUB_CAPLIQ=[
+    {label:'PF',        field:'capPF',cur:true},
+    {label:'PJ',        field:'capPJ',cur:true},
+    {label:'PME',       field:'pme',  cur:true},
+    {label:'Corporate', field:'corp', cur:true},
+  ];
+  const SUB_SEGUROS=[
+    {label:'R1 — Reuniões',field:'r1',cur:false},
+    {label:'R2 — Reuniões',field:'r2',cur:false},
+  ];
+
+  // KPI tree
   const KPIS=[
-    {id:'capLiq',label:'Captação Líquida',val:t.capLiq,meta:capMeta,cur:true,field:'capLiq',children:[
-      {id:'capPF',label:'Cap. Líq. PF',val:t.capPF,cur:true,field:'capPF'},
-      {id:'capPJ',label:'Cap. Líq. PJ',val:t.capPJ,cur:true,field:'capPJ',children:[
+    {id:'capLiq', label:'Captação Líquida', val:t.capLiq, meta:capMeta, cur:true, field:'capLiq',
+     subFields:SUB_CAPLIQ,
+     children:[
+      {id:'capPF',label:'Cap. Líq. PF',val:t.capPF,meta:t.metaCapPF||null,cur:true,field:'capPF'},
+      {id:'capPJ',label:'Cap. Líq. PJ',val:t.capPJ,meta:t.metaCapPJ||null,cur:true,field:'capPJ',children:[
         {id:'pme', label:'PME',       val:t.pme, cur:true,field:'pme'},
         {id:'corp',label:'Corporate', val:t.corp,cur:true,field:'corp'},
       ]},
     ]},
-    {id:'auc',label:'AUC Total',val:t.aucPF+t.aucPJ,meta:null,cur:true,field:'auc',children:[
-      {id:'aucPF',label:'AuC PF',val:t.aucPF,cur:true,field:'aucPF'},
-      {id:'aucPJ',label:'AuC PJ',val:t.aucPJ,cur:true,field:'aucPJ'},
+    {id:'auc',label:'AUC (Net Em M)',val:t.netEmM,meta:null,cur:true,field:'netEmM'},
+    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivTotal||null,cur:false,field:'aPF',children:[
+      {id:'a3p', label:'PF 300k+',val:t.a3p, meta:null,cur:false,field:'a3p'},
+      {id:'a3m', label:'PF 300k-',val:t.a3m, meta:t.metaAtiv300m||null,cur:false,field:'a3m'},
     ]},
-    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:null,cur:false,field:'aPF',children:[
-      {id:'a3p',label:'300k+',val:t.a3p,cur:false,field:'a3p'},
-      {id:'a3m',label:'300k-',val:t.a3m,cur:false,field:'a3m'},
+    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:null,cur:false,field:'aPJ',children:[
+      {id:'a3pPJ',label:'PJ 300k+',val:t.a3pPJ,cur:false,field:'a3pPJ'},
+      {id:'a3mPJ',label:'PJ 300k-',val:t.a3mPJ,cur:false,field:'a3mPJ'},
     ]},
-    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:null,cur:false,field:'aPJ'},
-    {id:'receita',label:'Receita Total',val:t.receita,meta:recMeta,cur:true,field:'receita',children:[
+    {id:'receita',label:'Receita Total',val:t.receita,meta:recMeta,cur:true,field:'receita',
+     subFields:SUB_RECEITA,
+     children:[
       {id:'rRF', label:'Renda Fixa',    val:t.rRF, cur:true,field:'rRF'},
       {id:'rRV', label:'Renda Variável',val:t.rRV, cur:true,field:'rRV'},
       {id:'rCet',label:'Cetipados',     val:t.rCet,cur:true,field:'rCet'},
@@ -489,25 +515,31 @@ function buildGestor(){
       {id:'rFee',label:'Fee Fixo',      val:t.rFee,cur:true,field:'rFee'},
       {id:'rCam',label:'Câmbio',        val:t.rCam,cur:true,field:'rCam'},
     ]},
-    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:null,cur:false,field:'apolEm',children:[
-      {id:'r1',label:'R1 — Reuniões realizadas',val:t.r1,cur:false,field:'r1'},
-      {id:'r2',label:'R2 — Reuniões realizadas',val:t.r2,cur:false,field:'r2'},
+    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:false,field:'apolEm',
+     subFields:SUB_SEGUROS,
+     children:[
+      {id:'r1',label:'R1 — Reuniões',val:t.r1,meta:t.metaR1||null,cur:false,field:'r1'},
+      {id:'r2',label:'R2 — Reuniões',val:t.r2,meta:t.metaR2||null,cur:false,field:'r2'},
     ]},
-    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,              meta:null,cur:false,field:'feCons'},
-    {id:'modServ',label:'Modelo de Serviço',      val:rows.length?t.modServ/rows.length:0, meta:null,cur:false,field:'modServ'},
-    {id:'saude',  label:'Saúde do Cliente',        val:rows.length?t.saude/rows.length:0,   meta:null,cur:false,field:'saude'},
-    {id:'rupt',   label:'Ruptura',                 val:t.rupt,               meta:null,cur:false,field:'rupt',invertBad:true},
-    {id:'nps',    label:'NPS',                     val:t.nps,                meta:null,cur:false,field:'nps'},
+    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:false,field:'feCons'},
+    {id:'modServ',label:'Modelo de Serviço',       val:t.modServ/n,meta:metaModServAvg,  cur:false,field:'modServ'},
+    {id:'saude',  label:'Saúde do Cliente',         val:t.saude/n,  meta:metaSaudeAvg,    cur:false,field:'saude'},
+    {id:'rupt',   label:'Ruptura',                  val:t.rupt,     meta:t.metaRupt||null,cur:false,field:'rupt',invertBad:true},
+    {id:'nps',    label:'NPS Respondidos',          val:t.npsResp,  meta:t.metaNPS||null, cur:false,field:'npsResp'},
   ];
 
-  function makeRow(cls, id, parentId, hasC, kpiVal, kpiMeta, kpiCur, kpiInv, indent, labelEl){
-    const c = cells(kpiVal, kpiMeta||null, kpiCur, kpiInv||false, pace.pct);
-    const heat = c.p!==null ? rowHeat(c.p) : '';
-    const parentAttr = parentId ? `data-parent="${parentId}"` : '';
-    return `<tr class="${cls}${parentId?' hidden':''}" data-id="${id}" ${parentAttr} data-has-children="${hasC?1:0}" onclick="toggle('${id}')" style="${heat}">
-      <td><div class="lbl" style="padding-left:${indent}px">
-        ${hasC ? `<span class="chev">▶</span>` : `<span style="width:12px;display:inline-block"></span>`}
-        ${labelEl}
+  // --- render rows ---
+  function makeR0(kpi){
+    const hasC=!!(kpi.children?.length);
+    const hasSub=!!(kpi.subFields?.length);
+    const c=cells(kpi.val,kpi.meta||null,kpi.cur,kpi.invertBad||false,pace.pct);
+    const rowClick=hasC||hasSub?`toggleAssessors('${kpi.id}')`:`toggleLeaf('${kpi.id}')`;
+    const chevClick=hasC?`event.stopPropagation();toggleProducts('${kpi.id}')`:`event.stopPropagation();toggleLeaf('${kpi.id}')`;
+    const hintHTML=hasC&&hasSub?`<span class="mode-hint">linha = assessores · ▶ = produtos</span>`:'';
+    return`<tr class="r0 ${c.heatCls}" data-id="${kpi.id}" onclick="${rowClick}" style="${c.p!==null?`--w:${Math.min(c.p,100)}%`:''}">
+      <td><div class="lbl">
+        <span class="chev-p" onclick="${chevClick}">▶</span>
+        <span class="kname">${kpi.label}</span>${hintHTML}
       </div></td>
       <td class="vn ${c.vnCls}">${c.display}</td>
       <td class="meta-cell">${c.metaDisplay}</td>
@@ -517,102 +549,175 @@ function buildGestor(){
     </tr>`;
   }
 
+  function makeR1(child,parentId){
+    const hasC=!!(child.children?.length);
+    const c=cells(child.val,child.meta||null,child.cur,false,pace.pct);
+    const chevClick=hasC?`event.stopPropagation();toggleProducts('${child.id}')`:`event.stopPropagation();toggleSubKPI('${child.id}')`;
+    return`<tr class="r1 hidden ${c.heatCls}" data-id="${child.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child.id}')" style="${c.p!==null?`--w:${Math.min(c.p,100)}%`:''}">
+      <td><div class="lbl">
+        ${hasC?`<span class="chev-p" onclick="${chevClick}">▶</span>`:`<span style="width:14px;display:inline-block"></span>`}
+        <span class="sname">${child.label}</span>
+      </div></td>
+      <td class="vn ${c.vnCls}">${c.display}</td>
+      <td class="meta-cell">${c.metaDisplay}</td>
+      <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
+      <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
+      <td class="bar-col">${c.barHTML}</td>
+    </tr>`;
+  }
+
+  function makeR2(child2,parentId){
+    const c=cells(child2.val,null,child2.cur,false,pace.pct);
+    return`<tr class="r2 hidden" data-id="${child2.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child2.id}')">
+      <td><div class="lbl"><span class="chev-p">▶</span><span class="ssname">${child2.label}</span></div></td>
+      <td class="vn ${c.vnCls}">${c.display}</td>
+      <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+    </tr>`;
+  }
+
   let tbody='';
   for(const kpi of KPIS){
-    const hasC=!!(kpi.children?.length);
-    tbody += makeRow('r0',kpi.id,null,hasC,kpi.val,kpi.meta,kpi.cur,kpi.invertBad,0,`<span class="kname">${kpi.label}</span>`);
-    if(hasC){
+    tbody+=makeR0(kpi);
+    // assessor rows (shown via toggleAssessors or toggleLeaf)
+    tbody+=aRows(kpi.id,kpi.field,kpi.cur,rows,kpi.subFields||null);
+    // product children rows
+    if(kpi.children?.length){
       for(const child of kpi.children){
-        const hasC2=!!(child.children?.length);
-        tbody += makeRow('r1',child.id,kpi.id,hasC2,child.val,child.meta,child.cur,false,0,`<span class="sname">${child.label}</span>`);
-        if(hasC2){
+        tbody+=makeR1(child,kpi.id);
+        if(child.children?.length){
           for(const c2 of child.children){
-            tbody += makeRow('r2',c2.id,child.id,false,c2.val,c2.meta,c2.cur,false,0,`<span class="ssname">${c2.label}</span>`);
-            tbody += aRows(c2.id,c2.field,c2.cur,rows);
+            tbody+=makeR2(c2,child.id);
+            tbody+=aRows(c2.id,c2.field,c2.cur,rows,null);
           }
-        } else {
-          tbody += aRows(child.id,child.field,child.cur,rows);
+        }else{
+          tbody+=aRows(child.id,child.field,child.cur,rows,null);
         }
       }
-    } else {
-      tbody += aRows(kpi.id,kpi.field,kpi.cur,rows);
     }
   }
 
-  panel.innerHTML = `
+  panel.innerHTML=`
   <div class="hero-strip">
-    ${heroCard('Captação Líquida', t.capLiq, capMeta, true, pace.pct)}
-    ${heroCard('Receita Total', t.receita, recMeta, true, pace.pct)}
-    <div class="hero-card">
-      <div class="hero-eyebrow">Pace do Mês</div>
-      <div class="hero-val ${paceCls==='ok'?'ok':paceCls==='warn'?'warn':'ko'}">${pace.pct}%</div>
-      <div class="hero-sub">Dia <b>${pace.elapsed}</b> de ${pace.total} dias úteis</div>
-      <div class="hero-rule">
-        <div class="hero-bar-bg"><div class="hero-bar-fill gold" style="width:${pace.pct}%"></div></div>
-        <span class="hero-pct">${pace.elapsed}/${pace.total}</span>
-      </div>
-    </div>
+    ${heroCard('Captação Líquida',t.capLiq,capMeta,true,pace.pct,false)}
+    ${heroCard('Receita Total',t.receita,recMeta,true,pace.pct,false)}
+    ${heroCard('Ativações 300k+ (PF+PJ)',ativ300k,t.metaAtivTotal||null,false,pace.pct,true)}
   </div>
   <div class="team-bar">
     <span class="team-label">Equipe</span>
     <button class="pill ${selectedTeam==='ALL'?'active':''}" onclick="selectTeam('ALL')">Todas</button>
     ${teams.map(eq=>`<button class="pill ${selectedTeam===eq?'active':''}" onclick="selectTeam('${eq}')">${eq}</button>`).join('')}
   </div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-icon">▶</span> Por produto</span>
+    <span class="legend-item" style="color:var(--gold)">|</span>
+    <span class="legend-item">Linha = assessores (nos KPIs com ▶ e dica)</span>
+  </div>
   <div class="table-wrap">
     <table class="kt">
       <thead><tr>
         <th>Indicador</th>
-        <th class="r">Realizado no Mês</th>
+        <th class="r">Realizado</th>
         <th class="r">Meta</th>
-        <th class="r" style="width:56px">% Meta</th>
-        <th class="r" style="width:72px">Projeção</th>
-        <th class="c" style="width:130px">Progresso</th>
+        <th class="c" style="width:56px">% Meta</th>
+        <th class="c" style="width:68px">Projeção</th>
+        <th class="c" style="width:140px">Progresso</th>
       </tr></thead>
       <tbody>${tbody}</tbody>
     </table>
   </div>`;
 }
 
-// ── toggle ────────────────────────────────────────
-function toggle(id){
-  const row=document.querySelector(`tr[data-id="${id}"]`);
-  if(!row) return;
-  const hasC=row.dataset.hasChildren==='1';
-  const isOpen=row.classList.contains('open');
-  row.classList.toggle('open',!isOpen);
-  if(hasC){
-    document.querySelectorAll(`tr[data-parent="${id}"]`).forEach(r=>{
-      r.classList.toggle('hidden',isOpen);
-      if(isOpen){
-        r.classList.remove('open');
-        const cid=r.dataset.id;
-        document.querySelectorAll(`tr[data-parent="${cid}"]`).forEach(sr=>sr.classList.add('hidden'));
-        document.querySelectorAll(`tr.ra[data-for="${cid}"]`).forEach(sr=>sr.classList.add('hidden'));
-      }
-    });
-    if(isOpen){
-      document.querySelectorAll(`tr[data-parent="${id}"]`).forEach(ch=>{
-        document.querySelectorAll(`tr.ra[data-for="${ch.dataset.id}"]`).forEach(ar=>ar.classList.add('hidden'));
-      });
+// ── toggle functions ──────────────────────────────
+
+// helpers
+function _openA(id,row){
+  document.querySelectorAll(`tr.ra[data-for="${id}"]`).forEach(r=>r.classList.remove('hidden'));
+  row.classList.add('open-a');
+  row.dataset.mode='a';
+}
+function _closeA(id,row){
+  document.querySelectorAll(`tr.ra[data-for="${id}"]`).forEach(r=>{
+    r.classList.add('hidden');
+    r.classList.remove('open-a');
+    const aid=r.dataset.aid;
+    if(aid!=null)document.querySelectorAll(`tr.ra-detail[data-for-a="${id}"][data-aid="${aid}"]`).forEach(d=>d.classList.add('hidden'));
+  });
+  row.classList.remove('open-a');
+  row.dataset.mode='';
+}
+function _openP(id,row){
+  document.querySelectorAll(`tr[data-parent="${id}"]`).forEach(r=>r.classList.remove('hidden'));
+  row.classList.add('open-p');
+  row.dataset.mode='p';
+}
+function _closeP(id,row){
+  document.querySelectorAll(`tr[data-parent="${id}"]`).forEach(r=>{
+    r.classList.add('hidden');r.classList.remove('open-a','open-p');
+    const cid=r.dataset.id;
+    if(cid){
+      document.querySelectorAll(`tr.ra[data-for="${cid}"]`).forEach(a=>a.classList.add('hidden'));
+      document.querySelectorAll(`tr[data-parent="${cid}"]`).forEach(s=>s.classList.add('hidden'));
     }
-  } else {
-    document.querySelectorAll(`tr.ra[data-for="${id}"]`).forEach(r=>r.classList.toggle('hidden',isOpen));
-  }
+  });
+  row.classList.remove('open-p');
+  row.dataset.mode='';
 }
 
-function selectTeam(t){ selectedTeam=t; buildGestor() }
+// Complex KPI: row click = assessor view
+function toggleAssessors(id){
+  const row=document.querySelector(`tr[data-id="${id}"]`);if(!row)return;
+  const mode=row.dataset.mode||'';
+  if(mode==='p')_closeP(id,row);
+  mode==='a'?_closeA(id,row):_openA(id,row);
+}
+// Complex KPI: chevron = product view
+function toggleProducts(id){
+  const row=document.querySelector(`tr[data-id="${id}"]`);if(!row)return;
+  const mode=row.dataset.mode||'';
+  if(mode==='a')_closeA(id,row);
+  mode==='p'?_closeP(id,row):_openP(id,row);
+}
+// Leaf KPI: single toggle = assessors
+function toggleLeaf(id){
+  const row=document.querySelector(`tr[data-id="${id}"]`);if(!row)return;
+  const mode=row.dataset.mode||'';
+  mode==='a'?_closeA(id,row):_openA(id,row);
+}
+// Sub-KPI (r1/r2): click = assessors for that sub
+function toggleSubKPI(id){
+  const row=document.querySelector(`tr[data-id="${id}"]`);if(!row)return;
+  const mode=row.dataset.mode||'';
+  if(mode==='a'){
+    document.querySelectorAll(`tr.ra[data-for="${id}"]`).forEach(r=>r.classList.add('hidden'));
+    row.classList.remove('open-a');row.dataset.mode='';
+  }else{
+    document.querySelectorAll(`tr.ra[data-for="${id}"]`).forEach(r=>r.classList.remove('hidden'));
+    row.classList.add('open-a');row.dataset.mode='a';
+  }
+}
+// Assessor detail: click assessor → show their sub-breakdown
+function toggleAssessorDetail(kpiId,aid){
+  const aRow=document.querySelector(`tr.ra[data-for="${kpiId}"][data-aid="${aid}"]`);
+  const details=document.querySelectorAll(`tr.ra-detail[data-for-a="${kpiId}"][data-aid="${aid}"]`);
+  const isOpen=aRow?.classList.contains('open-a');
+  aRow?.classList.toggle('open-a',!isOpen);
+  details.forEach(r=>r.classList.toggle('hidden',isOpen));
+}
 
+function selectTeam(t){selectedTeam=t;buildGestor()}
+
+// ── load ──────────────────────────────────────────
 async function loadData(){
   try{
     const res=await fetch(CSV_URL);
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(!res.ok)throw new Error('HTTP '+res.status);
     const text=await res.text();
-    if(text.includes('<html')||text.length<100) throw new Error('not csv');
+    if(text.includes('<html')||text.length<100)throw new Error('not csv');
     const parsed=parseCSV(text);
     allData=mapRows(parsed);
-    if(!allData.length) throw new Error('empty');
+    if(!allData.length)throw new Error('empty');
   }catch(e){
-    console.warn('Demo mode:', e.message);
+    console.warn('Demo mode:',e.message);
     allData=mapRows(parseCSV(DEMO_CSV));
   }
   buildGestor();
