@@ -135,6 +135,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .vn.dim{color:var(--tx2);font-weight:500}
 .vn.sm{font-size:11px}
 
+.dt-cell{text-align:center;font-size:11px;color:var(--tx3);white-space:nowrap}
 .meta-cell{text-align:right;font-size:12px;color:var(--tx);white-space:nowrap}
 .pct-cell{text-align:right;font-size:12px;white-space:nowrap;width:52px;color:var(--tx2)}
 .pct-cell.ok  {color:var(--ok);font-weight:700}
@@ -253,7 +254,6 @@ function mapRows(rows){
     aPJ:     pn(g(r,'Ativação PJ')),
     a3pPJ:   pn(g(r,'Ativação PJ 300k+')),
     a3mPJ:   pn(g(r,'Ativação PJ 300k-')),
-    receita: pn(g(r,'Receita no Mês')),
     rRF:     pn(g(r,'Receita Renda Fixa')),
     rRV:     pn(g(r,'Receita Renda Variável')),
     rCet:    pn(g(r,'Receita Cetipados')),
@@ -263,7 +263,7 @@ function mapRows(rows){
     rPrev:   pn(g(r,'Receita Previdência')),
     rFee:    pn(g(r,'Receita Fee Fixo')),
     rCam:    pn(g(r,'Receita Câmbio')),
-    netEmM:  pn(g(r,'Net Em M')),           // AUC total
+    netEmM:  pn(g(r,'Net Em M')),
     r1:      pn(g(r,'R1 Seguros')),
     r2:      pn(g(r,'R2 Seguros')),
     apolEm:  pn(g(r,'Apolice Emitida')),
@@ -288,8 +288,24 @@ function mapRows(rows){
     metaAtiv300m:  pn(g(r,'Meta Ativação 300-')),
     metaAtivTotal: pn(g(r,'Meta Ativações Total')),
     metaNPS:       pn(g(r,'Meta Nota NPS')),
-    dtAtual: g(r,'Data Atualização'),
-  }));
+    // Datas por KPI (colunas a criar no Sheets)
+    dtCapLiq:  g(r,'Data Cap Liquida'),
+    dtAuc:     g(r,'Data AUC'),
+    dtAtivPF:  g(r,'Data Ativacao PF'),
+    dtAtivPJ:  g(r,'Data Ativacao PJ'),
+    dtReceita: g(r,'Data Receita'),
+    dtSeguros: g(r,'Data PA Seguros'),
+    dtCons:    g(r,'Data Consorcio'),
+    dtModServ: g(r,'Data Modelo Servico'),
+    dtSaude:   g(r,'Data Saude'),
+    dtRupt:    g(r,'Data Ruptura'),
+    dtNPS:     g(r,'Data NPS'),
+    dtAtual:   g(r,'Data Atualização'),
+  })).map(m=>{
+    // Receita Total = soma dos produtos (não usa coluna "Receita no Mês")
+    m.recCalc = m.rRF+m.rRV+m.rCet+m.rCOE+m.rInt+m.rFun+m.rPrev+m.rFee+m.rCam;
+    return m;
+  });
 }
 
 // ── state ─────────────────────────────────────────
@@ -360,7 +376,9 @@ function cells(v,meta,isCur,invertBad,pace){
 // subFields: [{label, field, cur}] for drill-down within an assessor
 function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace){
   const hasSub=subFields&&subFields.length>0;
-  return rows.map((a,idx)=>{
+  // Ordenar do maior para o menor
+  const sorted=[...rows].sort((a,b)=>(b[field]||0)-(a[field]||0));
+  return sorted.map((a,idx)=>{
     const v=a[field]!==undefined?a[field]:0;
     const aMeta=metaField?(a[metaField]||null):null;
     const c=cells(v,aMeta,isCur,invertBad||false,pace);
@@ -370,6 +388,7 @@ function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace){
       const sd=sf.cur?fmtR(sv):fmtN(sv);
       return`<tr class="ra-detail hidden" data-for-a="${kpiId}" data-aid="${idx}">
         <td><div class="lbl"><span class="a-dot"></span><span class="aname" style="font-size:11px">${sf.label}</span></div></td>
+        <td class="dt-cell"></td>
         <td class="vn dim sm">${sd}</td>
         <td class="meta-cell"></td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
       </tr>`;
@@ -378,6 +397,7 @@ function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace){
     const chevron=hasSub?`<span class="chev-p" style="font-size:8px">▶</span>`:`<span class="a-dot"></span>`;
     return`<tr class="ra hidden" data-for="${kpiId}" data-aid="${idx}" data-has-detail="${hasSub?1:0}"${hasSub?` onclick="toggleAssessorDetail('${kpiId}',${idx})"`:''}>
       <td><div class="lbl">${chevron}<span class="aname">${a.nome}</span></div></td>
+      <td class="dt-cell"></td>
       <td class="vn dim">${c.display}</td>
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
@@ -408,13 +428,15 @@ function buildGestor(){
   const t={};
   ['capLiq','capPF','capPJ','pme','corp',
    'aPF','a3p','a3m','aPJ','a3pPJ','a3mPJ',
-   'receita','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
+   'recCalc','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
    'netEmM','r1','r2','apolEm','feCons','conAnd',
    'modServ','saude','rupt','npsNR','npsResp',
    'metaCapLiq','metaCapPF','metaCapPJ','metaReceita',
    'metaModServ','metaSaude','metaRupt','metaPASeg',
    'metaR1','metaR2','metaCons','metaAtiv300m','metaAtivTotal','metaNPS',
   ].forEach(k=>t[k]=sk(rows,k));
+  // Primeira data não-vazia de cada KPI (todos os assessores têm a mesma)
+  const firstDt=field=>rows.map(r=>r[field]).find(v=>v)||'';
 
   const capMeta  = t.metaCapLiq  ||null;
   const recMeta  = t.metaReceita ||null;
@@ -444,9 +466,9 @@ function buildGestor(){
     {label:'R2 — Reuniões',field:'r2',cur:false},
   ];
 
-  // KPI tree  (metaField = campo individual do assessor para calcular % e projeção)
+  // KPI tree  (metaField = campo individual do assessor; dtField = coluna de data no Sheets)
   const KPIS=[
-    {id:'capLiq', label:'Captação Líquida', val:t.capLiq, meta:capMeta, cur:true, field:'capLiq', metaField:'metaCapLiq',
+    {id:'capLiq', label:'Captação Líquida', val:t.capLiq, meta:capMeta, cur:true, field:'capLiq', metaField:'metaCapLiq', dtField:'dtCapLiq',
      subFields:SUB_CAPLIQ,
      children:[
       {id:'capPF',label:'Cap. Líq. PF',val:t.capPF,meta:t.metaCapPF||null,cur:true,field:'capPF',metaField:'metaCapPF'},
@@ -455,16 +477,16 @@ function buildGestor(){
         {id:'corp',label:'Corporate', val:t.corp,cur:true,field:'corp',metaField:null},
       ]},
     ]},
-    {id:'auc',label:'AUC',val:t.netEmM,meta:null,cur:true,field:'netEmM',metaField:null},
-    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivTotal||null,cur:false,field:'aPF',metaField:'metaAtivTotal',children:[
-      {id:'a3p', label:'PF 300k+',val:t.a3p, meta:null,                   cur:false,field:'a3p', metaField:null},
-      {id:'a3m', label:'PF 300k-',val:t.a3m, meta:t.metaAtiv300m||null,  cur:false,field:'a3m', metaField:'metaAtiv300m'},
+    {id:'auc',label:'AUC',val:t.netEmM,meta:null,cur:true,field:'netEmM',metaField:null,dtField:'dtAuc'},
+    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivTotal||null,cur:false,field:'aPF',metaField:'metaAtivTotal',dtField:'dtAtivPF',children:[
+      {id:'a3p', label:'PF 300k+',val:t.a3p, meta:null,                  cur:false,field:'a3p', metaField:null},
+      {id:'a3m', label:'PF 300k-',val:t.a3m, meta:t.metaAtiv300m||null, cur:false,field:'a3m', metaField:'metaAtiv300m'},
     ]},
-    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:null,cur:false,field:'aPJ',metaField:null,children:[
+    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:null,cur:false,field:'aPJ',metaField:null,dtField:'dtAtivPJ',children:[
       {id:'a3pPJ',label:'PJ 300k+',val:t.a3pPJ,cur:false,field:'a3pPJ',metaField:null},
       {id:'a3mPJ',label:'PJ 300k-',val:t.a3mPJ,cur:false,field:'a3mPJ',metaField:null},
     ]},
-    {id:'receita',label:'Receita Total',val:t.receita,meta:recMeta,cur:true,field:'receita',metaField:'metaReceita',
+    {id:'receita',label:'Receita Total',val:t.recCalc,meta:recMeta,cur:true,field:'recCalc',metaField:'metaReceita',dtField:'dtReceita',
      subFields:SUB_RECEITA,
      children:[
       {id:'rRF', label:'Renda Fixa',    val:t.rRF, cur:true,field:'rRF', metaField:null},
@@ -477,17 +499,17 @@ function buildGestor(){
       {id:'rFee',label:'Fee Fixo',      val:t.rFee,cur:true,field:'rFee',metaField:null},
       {id:'rCam',label:'Câmbio',        val:t.rCam,cur:true,field:'rCam',metaField:null},
     ]},
-    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true, field:'apolEm',metaField:'metaPASeg',
+    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true, field:'apolEm',metaField:'metaPASeg',dtField:'dtSeguros',
      subFields:SUB_SEGUROS,
      children:[
       {id:'r1',label:'R1 — Reuniões',val:t.r1,meta:t.metaR1||null,cur:false,field:'r1',metaField:'metaR1'},
       {id:'r2',label:'R2 — Reuniões',val:t.r2,meta:t.metaR2||null,cur:false,field:'r2',metaField:'metaR2'},
     ]},
-    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:true, field:'feCons', metaField:'metaCons'},
-    {id:'modServ',label:'Modelo de Serviço',       val:t.modServ/n,meta:metaModServAvg,  cur:false,field:'modServ',metaField:'metaModServ'},
-    {id:'saude',  label:'Saúde do Cliente',         val:t.saude/n,  meta:metaSaudeAvg,    cur:false,field:'saude',  metaField:'metaSaude'},
-    {id:'rupt',   label:'Ruptura',                  val:t.rupt,     meta:t.metaRupt||null,cur:false,field:'rupt',   metaField:'metaRupt',  invertBad:true},
-    {id:'nps',    label:'NPS Respondidos',          val:t.npsResp,  meta:t.metaNPS||null, cur:false,field:'npsResp',metaField:'metaNPS'},
+    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:true, field:'feCons', metaField:'metaCons', dtField:'dtCons'},
+    {id:'modServ',label:'Modelo de Serviço',       val:t.modServ/n,meta:metaModServAvg,  cur:false,field:'modServ',metaField:'metaModServ',dtField:'dtModServ'},
+    {id:'saude',  label:'Saúde do Cliente',         val:t.saude/n,  meta:metaSaudeAvg,    cur:false,field:'saude',  metaField:'metaSaude', dtField:'dtSaude'},
+    {id:'rupt',   label:'Ruptura',                  val:t.rupt,     meta:t.metaRupt||null,cur:false,field:'rupt',   metaField:'metaRupt',  dtField:'dtRupt', invertBad:true},
+    {id:'nps',    label:'NPS Respondidos',          val:t.npsResp,  meta:t.metaNPS||null, cur:false,field:'npsResp',metaField:'metaNPS',  dtField:'dtNPS'},
   ];
 
   // --- render rows ---
@@ -498,11 +520,13 @@ function buildGestor(){
     const rowClick=hasC||hasSub?`toggleAssessors('${kpi.id}')`:`toggleLeaf('${kpi.id}')`;
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${kpi.id}')`:`event.stopPropagation();toggleLeaf('${kpi.id}')`;
     const hintHTML=hasC&&hasSub?`<span class="mode-hint">linha = assessores · ▶ = produtos</span>`:'';
+    const dt=kpi.dtField?firstDt(kpi.dtField):'';
     return`<tr class="r0 ${c.heatCls}" data-id="${kpi.id}" onclick="${rowClick}" style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
         <span class="chev-p" onclick="${chevClick}">▶</span>
         <span class="kname">${kpi.label}</span>${hintHTML}
       </div></td>
+      <td class="dt-cell">${dt}</td>
       <td class="vn ${c.vnCls}">${c.display}</td>
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
@@ -520,6 +544,7 @@ function buildGestor(){
         ${hasC?`<span class="chev-p" onclick="${chevClick}">▶</span>`:`<span style="width:14px;display:inline-block"></span>`}
         <span class="sname">${child.label}</span>
       </div></td>
+      <td class="dt-cell"></td>
       <td class="vn ${c.vnCls}">${c.display}</td>
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
@@ -532,6 +557,7 @@ function buildGestor(){
     const c=cells(child2.val,null,child2.cur,false,pace.pct);
     return`<tr class="r2 hidden" data-id="${child2.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child2.id}')">
       <td><div class="lbl"><span class="chev-p">▶</span><span class="ssname">${child2.label}</span></div></td>
+      <td class="dt-cell"></td>
       <td class="vn ${c.vnCls}">${c.display}</td>
       <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
     </tr>`;
@@ -573,6 +599,7 @@ function buildGestor(){
     <table class="kt">
       <thead><tr>
         <th>Indicador</th>
+        <th class="c" style="width:84px">Atualização</th>
         <th class="r" style="width:110px">Realizado</th>
         <th class="r" style="width:100px">Meta</th>
         <th class="c" style="width:58px">% Meta</th>
