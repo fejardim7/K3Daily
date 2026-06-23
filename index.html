@@ -167,15 +167,41 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:sp .65s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── login overlay ───────────────────────────────── */
+.login-overlay{position:fixed;inset:0;background:var(--blue);z-index:999;display:flex;align-items:center;justify-content:center}
+.login-overlay.hidden{display:none}
+.login-box{background:var(--white);border-radius:12px;padding:44px 36px 36px;width:300px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.login-logo{font-weight:800;font-size:24px;letter-spacing:.08em;color:var(--blue)}
+.login-logo-sub{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);margin-bottom:28px;margin-top:2px}
+.login-pin{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:6px;font-family:var(--f);font-size:16px;letter-spacing:.25em;text-align:center;outline:none;margin-bottom:10px;color:var(--tx);background:var(--s1)}
+.login-pin:focus{border-color:var(--blue);background:var(--white)}
+.login-btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-family:var(--f);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.login-btn:hover{opacity:.85}
+.login-err{margin-top:10px;font-size:11px;color:var(--ko);font-weight:600;min-height:16px;letter-spacing:.02em}
+.login-err.hidden{visibility:hidden}
+.logout-btn{font-size:11px;font-weight:600;padding:3px 10px;border-radius:3px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.55);background:none;cursor:pointer;font-family:var(--f);transition:all .12s}
+.logout-btn:hover{border-color:rgba(255,255,255,.45);color:rgba(255,255,255,.9)}
 </style>
 </head>
 <body>
+
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">K3</div>
+    <div class="login-logo-sub">Daily · Acesso Restrito</div>
+    <input id="pin-input" class="login-pin" type="password" placeholder="••••••" autocomplete="off" onkeydown="if(event.key==='Enter')tryLogin()">
+    <button class="login-btn" onclick="tryLogin()">Entrar</button>
+    <div id="login-err" class="login-err hidden">PIN inválido</div>
+  </div>
+</div>
 
 <header>
   <div class="logo">K3<div class="logo-sep"></div><span class="logo-sub">Daily</span></div>
   <div class="header-right">
     <span id="pace-badge" class="hbadge">—</span>
     <span id="date-badge" class="hbadge date">—</span>
+    <button class="logout-btn" id="logout-btn" onclick="logout()" style="display:none">Sair</button>
   </div>
 </header>
 
@@ -309,7 +335,60 @@ function mapRows(rows){
 }
 
 // ── state ─────────────────────────────────────────
-let allData=[], selectedTeam='ALL';
+let allData=[], selectedTeam='ALL', currentRole='';
+
+// ── acesso ────────────────────────────────────────
+// TROCAR UM PIN: abrir o console do browser e rodar:
+//   const h = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+//   console.log(await h('SeuNovoPIN'))
+// Copiar o hash → substituir a linha correspondente → fazer deploy.
+// Os PINs abaixo são PLACEHOLDERS. Troque antes de usar em produção.
+const ACCESS_MAP={
+  '75696dcbc6fd93fc8c53b6d643daf80d8cd7f861c021d20893462b8c133674b0':'ALL',    // PIN: k3admin
+  'edeabeec67e72ba8e768e6656c9f3b2b9d2dba0583fe34b0b3a43a9ca6c098c5':'Alpha',  // PIN: k3alpha
+  '97d6a8f751795d18418afd9463fb0faef462465cfe02632e27e6e672ddb19b71':'Beta',   // PIN: k3beta
+  '69e25d7ed642f38f09d12e5d4b0cff68e7c3e22deffe1fd7ae57ea882d966155':'Gamma',  // PIN: k3gamma
+};
+
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function getSession(){return JSON.parse(sessionStorage.getItem('k3s')||'null')}
+function setSession(role){sessionStorage.setItem('k3s',JSON.stringify({role}))}
+function clearSession(){sessionStorage.removeItem('k3s')}
+function showLoginOverlay(){document.getElementById('login-overlay').classList.remove('hidden')}
+
+async function tryLogin(){
+  const pin=document.getElementById('pin-input').value.trim();
+  if(!pin)return;
+  const hash=await sha256(pin);
+  const role=ACCESS_MAP[hash];
+  const err=document.getElementById('login-err');
+  if(!role){
+    err.textContent='PIN inválido';
+    err.classList.remove('hidden');
+    document.getElementById('pin-input').value='';
+    setTimeout(()=>err.classList.add('hidden'),2500);
+    return;
+  }
+  err.classList.add('hidden');
+  setSession(role);
+  applySession(role);
+}
+
+function applySession(role){
+  currentRole=role;
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('logout-btn').style.display='';
+  if(role!=='ALL')selectedTeam=role;
+  buildGestor();
+}
+
+function logout(){
+  clearSession();
+  location.reload();
+}
 
 // ── tabs ──────────────────────────────────────────
 function showTab(id){
@@ -585,11 +664,12 @@ function buildGestor(){
   }
 
   panel.innerHTML=`
-  <div class="team-bar">
+  ${currentRole==='ALL'?`<div class="team-bar">
     <span class="team-label">Equipe</span>
     <button class="pill ${selectedTeam==='ALL'?'active':''}" onclick="selectTeam('ALL')">Todas</button>
     ${teams.map(eq=>`<button class="pill ${selectedTeam===eq?'active':''}" onclick="selectTeam('${eq}')">${eq}</button>`).join('')}
-  </div>
+  </div>`:''}
+
   <div class="legend">
     <span class="legend-item"><span class="legend-icon">▶</span> Por produto</span>
     <span class="legend-item" style="color:var(--gold)">|</span>
@@ -704,10 +784,16 @@ async function loadData(){
     console.warn('Demo mode:',e.message);
     allData=mapRows(parseCSV(DEMO_CSV));
   }
-  buildGestor();
+  if(currentRole)buildGestor(); // só renderiza se o usuário já está autenticado
 }
 
-loadData();
+async function init(){
+  showLoginOverlay();
+  const s=getSession();
+  if(s)applySession(s.role); // sessão existente: oculta overlay e renderiza
+  await loadData();           // carrega dados (re-renderiza se já autenticado)
+}
+init();
 </script>
 </body>
 </html>
