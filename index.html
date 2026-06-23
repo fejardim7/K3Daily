@@ -218,18 +218,12 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 <div id="panel-qualidade" class="panel"><div class="placeholder">Em breve — Qualidade</div></div>
 
 <script>
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS_nh83QnSTkoyrf8utSgJaYLet2rbixbZw7wMMnFtyefFNOAquXH5UkW-Hu2cN7EzQgOGYCGnGSKI8/pub?output=csv';
-
-// Demo com estrutura exata do Consolidado
-const DEMO_CSV = `Equipe,Nome Assessor,Cod A,Cap. Liq. Total,Cap. Onshore PME Middle,Cap. Onshore Corporate,Ativação PF 300k+,Ativação PF 300k-,Ativação PJ 300k+,Ativação PJ 300k-,Meta Ativação 300k+,Ativação PF,Ativação PJ,Captação PF,Captação PJ,Receita no Mês,Net Em M,R1 Seguros,R2 Seguros,Apolice em Andamento,Apolice Emitida,Reuniões Consórcio,Consórcio em Andamento,Fechamento Consórcio,Modelo de Servir,Clientes em Ruptura,Saúde do Cliente,Data Atualização,Receita Renda Fixa,Receita Renda Variável,Receita Cetipados,Receita COE,Receita Internacional,Receita Fundos,Receita Previdência,Receita Fee Fixo,Receita Câmbio,NPS Sem Resposta,NPS Respondidos,Meta Cap Liquida PF,Meta Cap Liquida PJ,Meta Cap Liquida Total,Meta Modelo de Servir,Meta Saúde do Cliente,Meta Ruptura,Meta PA Seguros,Meta R1 Seguros,Meta R2 Seguros,Meta Consórcio,Meta Ativação 300-,Meta Ativações Total,Meta Nota NPS
-Alpha,João Silva,A01,1200000,200000,100000,2,2,1,0,4,3,1,900000,300000,45000,8000000,3,1,0,2,0,0,1,85,2,120,22/06/2026,12000,8000,5000,4000,3000,2000,5000,4000,2000,1,0,900000,300000,1500000,80,110,5,4,6,2,2,4,6,85
-Alpha,Maria Santos,A02,980000,150000,80000,1,1,0,0,3,2,0,750000,230000,38000,7000000,2,0,0,1,0,0,1,80,3,110,22/06/2026,10000,7000,4000,3000,2500,1800,4500,3200,2000,0,0,700000,250000,1200000,80,110,5,3,5,2,1,3,5,85
-Alpha,Pedro Costa,A03,1450000,250000,100000,3,3,2,1,5,4,2,1100000,350000,52000,9500000,4,2,0,3,0,1,2,90,1,130,22/06/2026,14000,9000,6000,5000,3500,2200,6000,4300,2000,0,1,1000000,350000,1800000,80,110,5,5,7,3,2,4,6,85
-Beta,Ana Oliveira,B01,800000,120000,80000,2,1,1,0,3,2,1,600000,200000,32000,6000000,2,1,0,1,0,0,1,78,4,100,22/06/2026,9000,5000,3500,2500,2000,1500,3800,2700,2000,1,0,550000,200000,1000000,80,110,5,3,4,2,1,3,4,85
-Beta,Carlos Lima,B02,650000,100000,50000,1,0,0,0,2,1,0,500000,150000,28000,5000000,1,0,0,0,0,0,0,72,5,95,22/06/2026,7500,4500,3000,2000,1800,1200,3200,2800,2000,0,0,450000,150000,900000,80,110,5,2,3,1,1,2,3,85
-Beta,Fernanda Reis,B03,920000,140000,80000,2,2,1,1,3,3,1,700000,220000,36000,6800000,3,1,0,2,0,0,1,82,2,115,22/06/2026,9500,6000,4000,3000,2200,1600,4200,3500,2000,0,0,620000,220000,1100000,80,110,5,3,5,2,1,3,4,85
-Gamma,Roberto Nunes,C01,1100000,180000,70000,2,1,1,0,3,2,1,850000,250000,40000,7500000,2,1,0,1,0,0,1,88,1,125,22/06/2026,11000,7500,4500,3500,2800,1900,4800,3000,2000,0,1,800000,250000,1400000,80,110,5,3,4,2,1,3,4,85
-Gamma,Luciana Prado,C02,750000,110000,60000,1,1,0,0,2,1,0,580000,170000,30000,5500000,1,0,0,0,0,0,1,76,3,98,22/06/2026,8000,5000,3200,2200,1900,1400,3500,2700,2000,1,0,530000,170000,950000,80,110,5,2,3,1,1,2,3,85`;
+// ── fontes de dados (abas do Sheets) ─────────────────
+const _BASE='https://docs.google.com/spreadsheets/d/e/2PACX-1vS_nh83QnSTkoyrf8utSgJaYLet2rbixbZw7wMMnFtyefFNOAquXH5UkW-Hu2cN7EzQgOGYCGnGSKI8/pub?output=csv';
+const CSV_CONSOLIDADO = _BASE+'&gid=0';            // resultados dos assessores
+const CSV_METAS       = _BASE+'&gid=1776920911';   // metas por assessor
+const CSV_DATAS       = _BASE+'&gid=287555750';    // data de atualização por coluna
+const CSV_PRODUTO_META= _BASE+'&gid=1366112441';   // meta total por produto de receita
 
 // ── pace ─────────────────────────────────────────
 function calcPace(){
@@ -261,14 +255,16 @@ function parseCSV(text){
     const row={};
     headers.forEach((h,i)=>row[h]=cells[i]||'');
     return row;
-  }).filter(r=>r['Nome Assessor']&&r['Nome Assessor'].trim());
+  });
 }
 
-function mapRows(rows){
-  return rows.map(r=>({
+// ── mapeamento de linhas do Consolidado ──────────────
+function mapRow(r){
+  const m={
     equipe:  g(r,'Equipe'),
     nome:    g(r,'Nome Assessor'),
     cod:     g(r,'Cod A'),
+    dtAtual: g(r,'Data Atualização'),
     capLiq:  pn(g(r,'Cap. Liq. Total')),
     capPF:   pn(g(r,'Captação PF')),
     capPJ:   pn(g(r,'Captação PJ')),
@@ -300,42 +296,47 @@ function mapRows(rows){
     rupt:    pn(g(r,'Clientes em Ruptura')),
     npsNR:   pn(g(r,'NPS Sem Resposta')),
     npsResp: pn(g(r,'NPS Respondidos')),
-    metaCapLiq:    pn(g(r,'Meta Cap Liquida Total')),
-    metaCapPF:     pn(g(r,'Meta Cap Liquida PF')),
-    metaCapPJ:     pn(g(r,'Meta Cap Liquida PJ')),
-    metaReceita:   pn(g(r,'Meta Receita')),
-    metaModServ:   pn(g(r,'Meta Modelo de Servir')),
-    metaSaude:     pn(g(r,'Meta Saúde do Cliente')),
-    metaRupt:      pn(g(r,'Meta Ruptura')),
-    metaPASeg:     pn(g(r,'Meta PA Seguros')),
-    metaR1:        pn(g(r,'Meta R1 Seguros')),
-    metaR2:        pn(g(r,'Meta R2 Seguros')),
-    metaCons:      pn(g(r,'Meta Consórcio')),
-    metaAtiv300m:  pn(g(r,'Meta Ativação 300-')),
-    metaAtivTotal: pn(g(r,'Meta Ativações Total')),
-    metaNPS:       pn(g(r,'Meta Nota NPS')),
-    // Datas por KPI (colunas a criar no Sheets)
-    dtCapLiq:  g(r,'Data Cap Liquida'),
-    dtAuc:     g(r,'Data AUC'),
-    dtAtivPF:  g(r,'Data Ativacao PF'),
-    dtAtivPJ:  g(r,'Data Ativacao PJ'),
-    dtReceita: g(r,'Data Receita'),
-    dtSeguros: g(r,'Data PA Seguros'),
-    dtCons:    g(r,'Data Consorcio'),
-    dtModServ: g(r,'Data Modelo Servico'),
-    dtSaude:   g(r,'Data Saude'),
-    dtRupt:    g(r,'Data Ruptura'),
-    dtNPS:     g(r,'Data NPS'),
-    dtAtual:   g(r,'Data Atualização'),
-  })).map(m=>{
-    // Receita Total = soma dos produtos (não usa coluna "Receita no Mês")
-    m.recCalc = m.rRF+m.rRV+m.rCet+m.rCOE+m.rInt+m.rFun+m.rPrev+m.rFee+m.rCam;
-    return m;
-  });
+  };
+  m.recCalc=m.rRF+m.rRV+m.rCet+m.rCOE+m.rInt+m.rFun+m.rPrev+m.rFee+m.rCam;
+  return m;
+}
+
+// ── mapeamento de metas por assessor ─────────────────
+function mapMeta(r){
+  return {
+    metaCapLiq:     pn(g(r,'Meta Cap Liquida Total')),
+    metaCapPF:      pn(g(r,'Meta Cap Liquida PF')),
+    metaCapPJ:      pn(g(r,'Meta Cap Liquida PJ')),
+    metaModServ:    pn(g(r,'Meta Modelo de Servir')),
+    metaSaude:      pn(g(r,'Meta Saúde do Cliente')),
+    metaRupt:       pn(g(r,'Meta Ruptura')),
+    metaPASeg:      pn(g(r,'Meta PA Seguros')),
+    metaR1:         pn(g(r,'Meta R1 Seguros')),
+    metaR2:         pn(g(r,'Meta R2 Seguros')),
+    metaCons:       pn(g(r,'Meta Consórcio')),
+    metaAtivPF300k: pn(g(r,'Meta Ativação PF 300K +')),
+    metaAtivPJ300k: pn(g(r,'Meta Ativação PJ 300K +')),
+    metaNPS:        pn(g(r,'Meta Nota NPS')),
+  };
+}
+
+// ── tabela de datas de atualização por coluna ────────
+function parseDateMap(text){
+  const map={};
+  parseCSV(text).forEach(r=>{if(r['Coluna'])map[r['Coluna']]=r['Data Atualização']||'';});
+  return map;
+}
+
+// ── meta total por produto de receita ────────────────
+function parseProdutoMeta(text){
+  const map={};
+  parseCSV(text).forEach(r=>{if(r['Produto'])map[r['Produto']]=pn(r['Meta']||'');});
+  return map;
 }
 
 // ── state ─────────────────────────────────────────
 let allData=[], selectedTeam='ALL', currentRole='';
+let dateMap={}, produtoMeta={};
 
 // ── acesso ────────────────────────────────────────
 // TROCAR UM PIN: abrir o console do browser e rodar:
@@ -514,15 +515,15 @@ function buildGestor(){
    'recCalc','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
    'netEmM','r1','r2','apolEm','feCons','conAnd',
    'modServ','saude','rupt','npsNR','npsResp',
-   'metaCapLiq','metaCapPF','metaCapPJ','metaReceita',
+   'metaCapLiq','metaCapPF','metaCapPJ',
    'metaModServ','metaSaude','metaRupt','metaPASeg',
-   'metaR1','metaR2','metaCons','metaAtiv300m','metaAtivTotal','metaNPS',
+   'metaR1','metaR2','metaCons','metaAtivPF300k','metaAtivPJ300k','metaNPS',
   ].forEach(k=>t[k]=sk(rows,k));
-  // Primeira data não-vazia de cada KPI (todos os assessores têm a mesma)
-  const firstDt=field=>rows.map(r=>r[field]).find(v=>v)||'';
 
   const capMeta  = t.metaCapLiq  ||null;
-  const recMeta  = t.metaReceita ||null;
+  // Meta Receita Total = soma das metas de produto (firma toda) quando ALL, null por equipe
+  const recMetaTotal = Object.values(produtoMeta).reduce((a,v)=>a+v,0)||null;
+  const recMeta  = selectedTeam==='ALL' ? recMetaTotal : null;
   const metaModServAvg = t.metaModServ?t.metaModServ/n:null;
   const metaSaudeAvg   = t.metaSaude  ?t.metaSaude  /n:null;
 
@@ -549,9 +550,10 @@ function buildGestor(){
     {label:'R2 — Reuniões',field:'r2',cur:false},
   ];
 
-  // KPI tree  (metaField = campo individual do assessor; dtField = coluna de data no Sheets)
+  // KPI tree  (metaField = campo individual do assessor; dtColuna = chave na tabela Data de Atualização)
+  const pm=produtoMeta; // atalho
   const KPIS=[
-    {id:'capLiq', label:'Captação Líquida', val:t.capLiq, meta:capMeta, cur:true, field:'capLiq', metaField:'metaCapLiq', dtField:'dtCapLiq',
+    {id:'capLiq', label:'Captação Líquida', val:t.capLiq, meta:capMeta, cur:true, field:'capLiq', metaField:'metaCapLiq', dtColuna:'Cap. Liq. Total',
      subFields:SUB_CAPLIQ,
      children:[
       {id:'capPF',label:'Cap. Líq. PF',val:t.capPF,meta:t.metaCapPF||null,cur:true,field:'capPF',metaField:'metaCapPF'},
@@ -560,39 +562,39 @@ function buildGestor(){
         {id:'corp',label:'Corporate', val:t.corp,cur:true,field:'corp',metaField:null},
       ]},
     ]},
-    {id:'auc',label:'AUC',val:t.netEmM,meta:null,cur:true,field:'netEmM',metaField:null,dtField:'dtAuc'},
-    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivTotal||null,cur:false,field:'aPF',metaField:'metaAtivTotal',dtField:'dtAtivPF',children:[
-      {id:'a3p', label:'PF 300k+',val:t.a3p, meta:null,                  cur:false,field:'a3p', metaField:null},
-      {id:'a3m', label:'PF 300k-',val:t.a3m, meta:t.metaAtiv300m||null, cur:false,field:'a3m', metaField:'metaAtiv300m'},
+    {id:'auc',label:'AUC',val:t.netEmM,meta:null,cur:true,field:'netEmM',metaField:null,dtColuna:'Net Em M'},
+    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivPF300k||null,cur:false,field:'aPF',metaField:'metaAtivPF300k',dtColuna:'Ativação PF',children:[
+      {id:'a3p',label:'PF 300k+',val:t.a3p,meta:t.metaAtivPF300k||null,cur:false,field:'a3p',metaField:'metaAtivPF300k'},
+      {id:'a3m',label:'PF 300k-',val:t.a3m,meta:null,                  cur:false,field:'a3m',metaField:null},
     ]},
-    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:null,cur:false,field:'aPJ',metaField:null,dtField:'dtAtivPJ',children:[
-      {id:'a3pPJ',label:'PJ 300k+',val:t.a3pPJ,cur:false,field:'a3pPJ',metaField:null},
-      {id:'a3mPJ',label:'PJ 300k-',val:t.a3mPJ,cur:false,field:'a3mPJ',metaField:null},
+    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:t.metaAtivPJ300k||null,cur:false,field:'aPJ',metaField:'metaAtivPJ300k',dtColuna:'Ativação PJ',children:[
+      {id:'a3pPJ',label:'PJ 300k+',val:t.a3pPJ,meta:t.metaAtivPJ300k||null,cur:false,field:'a3pPJ',metaField:'metaAtivPJ300k'},
+      {id:'a3mPJ',label:'PJ 300k-',val:t.a3mPJ,meta:null,                  cur:false,field:'a3mPJ',metaField:null},
     ]},
-    {id:'receita',label:'Receita Total',val:t.recCalc,meta:recMeta,cur:true,field:'recCalc',metaField:'metaReceita',dtField:'dtReceita',
+    {id:'receita',label:'Receita Total',val:t.recCalc,meta:recMeta,cur:true,field:'recCalc',metaField:null,dtColuna:'Receita Renda Fixa',
      subFields:SUB_RECEITA,
      children:[
-      {id:'rRF', label:'Renda Fixa',    val:t.rRF, cur:true,field:'rRF', metaField:null},
-      {id:'rRV', label:'Renda Variável',val:t.rRV, cur:true,field:'rRV', metaField:null},
-      {id:'rCet',label:'Cetipados',     val:t.rCet,cur:true,field:'rCet',metaField:null},
-      {id:'rCOE',label:'COE',           val:t.rCOE,cur:true,field:'rCOE',metaField:null},
-      {id:'rInt',label:'Internacional', val:t.rInt,cur:true,field:'rInt',metaField:null},
-      {id:'rFun',label:'Fundos',        val:t.rFun,cur:true,field:'rFun',metaField:null},
-      {id:'rPrev',label:'Previdência',  val:t.rPrev,cur:true,field:'rPrev',metaField:null},
-      {id:'rFee',label:'Fee Fixo',      val:t.rFee,cur:true,field:'rFee',metaField:null},
-      {id:'rCam',label:'Câmbio',        val:t.rCam,cur:true,field:'rCam',metaField:null},
+      {id:'rRF', label:'Renda Fixa',    val:t.rRF, meta:pm['Renda Fixa']   ||null,cur:true,field:'rRF', metaField:null},
+      {id:'rRV', label:'Renda Variável',val:t.rRV, meta:pm['Renda Variável']||null,cur:true,field:'rRV', metaField:null},
+      {id:'rCet',label:'Cetipados',     val:t.rCet,meta:pm['Cetipados']     ||null,cur:true,field:'rCet',metaField:null},
+      {id:'rCOE',label:'COE',           val:t.rCOE,meta:pm['COE']           ||null,cur:true,field:'rCOE',metaField:null},
+      {id:'rInt',label:'Internacional', val:t.rInt,meta:pm['Internacional']  ||null,cur:true,field:'rInt',metaField:null},
+      {id:'rFun',label:'Fundos',        val:t.rFun,meta:pm['Fundos']         ||null,cur:true,field:'rFun',metaField:null},
+      {id:'rPrev',label:'Previdência',  val:t.rPrev,meta:pm['Previdência']   ||null,cur:true,field:'rPrev',metaField:null},
+      {id:'rFee',label:'Fee Fixo',      val:t.rFee,meta:pm['Fee Fixo']       ||null,cur:true,field:'rFee',metaField:null},
+      {id:'rCam',label:'Câmbio',        val:t.rCam,meta:pm['Câmbio']         ||null,cur:true,field:'rCam',metaField:null},
     ]},
-    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true, field:'apolEm',metaField:'metaPASeg',dtField:'dtSeguros',
+    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true, field:'apolEm',metaField:'metaPASeg',dtColuna:'R1 Seguros',
      subFields:SUB_SEGUROS,
      children:[
       {id:'r1',label:'R1 — Reuniões',val:t.r1,meta:t.metaR1||null,cur:false,field:'r1',metaField:'metaR1'},
       {id:'r2',label:'R2 — Reuniões',val:t.r2,meta:t.metaR2||null,cur:false,field:'r2',metaField:'metaR2'},
     ]},
-    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:true, field:'feCons', metaField:'metaCons', dtField:'dtCons'},
-    {id:'modServ',label:'Modelo de Serviço',       val:t.modServ/n,meta:metaModServAvg,  cur:false,field:'modServ',metaField:'metaModServ',dtField:'dtModServ'},
-    {id:'saude',  label:'Saúde do Cliente',         val:t.saude/n,  meta:metaSaudeAvg,    cur:false,field:'saude',  metaField:'metaSaude', dtField:'dtSaude'},
-    {id:'rupt',   label:'Ruptura',                  val:t.rupt,     meta:t.metaRupt||null,cur:false,field:'rupt',   metaField:'metaRupt',  dtField:'dtRupt', invertBad:true},
-    {id:'nps',    label:'NPS Respondidos',          val:t.npsResp,  meta:t.metaNPS||null, cur:false,field:'npsResp',metaField:'metaNPS',  dtField:'dtNPS'},
+    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:true, field:'feCons', metaField:'metaCons', dtColuna:'Fechamento Consórcio'},
+    {id:'modServ',label:'Modelo de Servir',        val:t.modServ/n,meta:metaModServAvg, cur:false,field:'modServ',metaField:'metaModServ',dtColuna:'Modelo de Servir'},
+    {id:'saude',  label:'Saúde do Cliente',        val:t.saude/n,  meta:metaSaudeAvg,   cur:false,field:'saude',  metaField:'metaSaude', dtColuna:'Saúde do Cliente'},
+    {id:'rupt',   label:'Ruptura',                 val:t.rupt,     meta:t.metaRupt||null,cur:false,field:'rupt',  metaField:'metaRupt',  dtColuna:'Clientes em Ruptura',invertBad:true},
+    {id:'nps',    label:'NPS Respondidos',         val:t.npsResp,  meta:t.metaNPS||null, cur:false,field:'npsResp',metaField:'metaNPS', dtColuna:'NPS Respondidos'},
   ];
 
   // --- render rows ---
@@ -603,7 +605,7 @@ function buildGestor(){
     const rowClick=hasC||hasSub?`toggleAssessors('${kpi.id}')`:`toggleLeaf('${kpi.id}')`;
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${kpi.id}')`:`event.stopPropagation();toggleLeaf('${kpi.id}')`;
     const hintHTML=hasC&&hasSub?`<span class="mode-hint">linha = assessores · ▶ = produtos</span>`:'';
-    const dt=kpi.dtField?firstDt(kpi.dtField):'';
+    const dt=kpi.dtColuna?(dateMap[kpi.dtColuna]||''):'';
     return`<tr class="r0 ${c.heatCls}" data-id="${kpi.id}" onclick="${rowClick}" style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
         <span class="chev-p" onclick="${chevClick}">▶</span>
@@ -777,18 +779,31 @@ function selectTeam(t){selectedTeam=t;buildGestor()}
 // ── load ──────────────────────────────────────────
 async function loadData(){
   try{
-    const res=await fetch(CSV_URL);
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const text=await res.text();
-    if(text.includes('<html')||text.length<100)throw new Error('not csv');
-    const parsed=parseCSV(text);
-    allData=mapRows(parsed);
+    const [rC,rM,rD,rP]=await Promise.all([
+      fetch(CSV_CONSOLIDADO),fetch(CSV_METAS),fetch(CSV_DATAS),fetch(CSV_PRODUTO_META)
+    ]);
+    const [tC,tM,tD,tP]=await Promise.all([rC.text(),rM.text(),rD.text(),rP.text()]);
+    if(tC.includes('<html')||tC.length<100)throw new Error('not csv');
+
+    const rowsC=parseCSV(tC).filter(r=>r['Nome Assessor']&&r['Nome Assessor'].trim());
+    const rowsM=parseCSV(tM).filter(r=>r['Cod A']&&r['Cod A'].trim());
+
+    dateMap=parseDateMap(tD);
+    produtoMeta=parseProdutoMeta(tP);
+
+    // join Consolidado + Metas por Cod A
+    const metaByCod={};
+    rowsM.forEach(r=>{metaByCod[r['Cod A']]=r;});
+    allData=rowsC.map(r=>Object.assign(mapRow(r),mapMeta(metaByCod[r['Cod A']]||{})));
+
     if(!allData.length)throw new Error('empty');
   }catch(e){
-    console.warn('Demo mode:',e.message);
-    allData=mapRows(parseCSV(DEMO_CSV));
+    console.error('Erro ao carregar dados:',e.message);
+    const p=document.getElementById('panel-gestor');
+    if(p)p.innerHTML='<div class="placeholder">Erro ao carregar dados. Verifique a conexão e tente recarregar.</div>';
+    return;
   }
-  if(currentRole)buildGestor(); // só renderiza se o usuário já está autenticado
+  if(currentRole)buildGestor();
 }
 
 async function init(){
