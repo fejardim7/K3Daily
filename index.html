@@ -777,32 +777,54 @@ function toggleAssessorDetail(kpiId,aid){
 function selectTeam(t){selectedTeam=t;buildGestor()}
 
 // ── load ──────────────────────────────────────────
-async function loadData(){
+async function safeFetch(url){
   try{
-    const [rC,rM,rD,rP]=await Promise.all([
-      fetch(CSV_CONSOLIDADO),fetch(CSV_METAS),fetch(CSV_DATAS),fetch(CSV_PRODUTO_META)
-    ]);
-    const [tC,tM,tD,tP]=await Promise.all([rC.text(),rM.text(),rD.text(),rP.text()]);
-    if(tC.includes('<html')||tC.length<100)throw new Error('not csv');
-
-    const rowsC=parseCSV(tC).filter(r=>r['Nome Assessor']&&r['Nome Assessor'].trim());
-    const rowsM=parseCSV(tM).filter(r=>r['Cod A']&&r['Cod A'].trim());
-
-    dateMap=parseDateMap(tD);
-    produtoMeta=parseProdutoMeta(tP);
-
-    // join Consolidado + Metas por Cod A
-    const metaByCod={};
-    rowsM.forEach(r=>{metaByCod[r['Cod A']]=r;});
-    allData=rowsC.map(r=>Object.assign(mapRow(r),mapMeta(metaByCod[r['Cod A']]||{})));
-
-    if(!allData.length)throw new Error('empty');
+    const r=await fetch(url);
+    const t=await r.text();
+    if(t.includes('<html')||t.length<50)return null;
+    return t;
   }catch(e){
-    console.error('Erro ao carregar dados:',e.message);
+    console.warn('Fetch falhou:',url,e.message);
+    return null;
+  }
+}
+
+async function loadData(){
+  // Consolidado é obrigatório; demais abas são opcionais
+  const [tC,tM,tD,tP]=await Promise.all([
+    safeFetch(CSV_CONSOLIDADO),
+    safeFetch(CSV_METAS),
+    safeFetch(CSV_DATAS),
+    safeFetch(CSV_PRODUTO_META),
+  ]);
+
+  if(!tC){
     const p=document.getElementById('panel-gestor');
     if(p)p.innerHTML='<div class="placeholder">Erro ao carregar dados. Verifique a conexão e tente recarregar.</div>';
     return;
   }
+
+  // Datas e Produto Meta (opcionais)
+  dateMap    = tD ? parseDateMap(tD)     : {};
+  produtoMeta= tP ? parseProdutoMeta(tP) : {};
+
+  const rowsC=parseCSV(tC).filter(r=>r['Nome Assessor']&&r['Nome Assessor'].trim());
+  const rowsM=tM ? parseCSV(tM).filter(r=>r['Cod A']&&r['Cod A'].trim()) : [];
+
+  // join por Cod A
+  const metaByCod={};
+  rowsM.forEach(r=>{metaByCod[r['Cod A']]=r;});
+
+  // 1. assessores do Consolidado (com meta do join)
+  const codsCons=new Set(rowsC.map(r=>r['Cod A']));
+  allData=rowsC.map(r=>Object.assign(mapRow(r),mapMeta(metaByCod[r['Cod A']]||{})));
+
+  // 2. assessores só na aba Metas (novos, sem dados ainda no Consolidado)
+  rowsM.filter(r=>!codsCons.has(r['Cod A'])).forEach(r=>{
+    const base=Object.assign(mapRow({}),{equipe:g(r,'Equipe'),nome:g(r,'Nome Assessor'),cod:g(r,'Cod A')});
+    allData.push(Object.assign(base,mapMeta(r)));
+  });
+
   if(currentRole)buildGestor();
 }
 
