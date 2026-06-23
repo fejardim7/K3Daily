@@ -344,10 +344,14 @@ let allData=[], selectedTeam='ALL', currentRole='';
 // Copiar o hash → substituir a linha correspondente → fazer deploy.
 // Os PINs abaixo são PLACEHOLDERS. Troque antes de usar em produção.
 const ACCESS_MAP={
-  '75696dcbc6fd93fc8c53b6d643daf80d8cd7f861c021d20893462b8c133674b0':'ALL',    // PIN: k3admin
-  'edeabeec67e72ba8e768e6656c9f3b2b9d2dba0583fe34b0b3a43a9ca6c098c5':'Alpha',  // PIN: k3alpha
-  '97d6a8f751795d18418afd9463fb0faef462465cfe02632e27e6e672ddb19b71':'Beta',   // PIN: k3beta
-  '69e25d7ed642f38f09d12e5d4b0cff68e7c3e22deffe1fd7ae57ea882d966155':'Gamma',  // PIN: k3gamma
+  'e2e8c2e5754584be6e418dea6c6f018f535695027919b61ce9b7b01591720549':'ALL',             // K3Admin@26
+  '66e86c11612d882dd80add549233a7fa23e19d32c3251ea8d142bd7001eb4d55':'ADM',             // K3Adm@26
+  'e2aeea7d8ace03c1fcd7b5218d6f9464073be631ab42e4aedebd705b69e5c0bb':'GYN',             // K3Gyn@26
+  '932ae99dde7a4deebe9165e03646066f7ff3e78f1f8e2a904f17fd68de08cc37':'ITA',             // K3Ita@26
+  'c430cc5b04b685a3ba71f4e9d5788d0331ab96ad4645239b6fe7775c95ced2c9':'RJ',              // K3Rj@26
+  '75ed79f9ff15b047ff727d49829e19135f8f9096c39728c4643217db8caf1b7c':'SP PF FERNANDO',  // K3SpFdo@26
+  '2d00ab83aaad582deb9b67a1afb9d7d0f0f468c2f7efd11524e638f6cdb2aec0':'SP PF RODRIGO',  // K3SpRdg@26
+  'ed53bf25206e98a56cb78982339d9abd07cb4202d6afbfe98f2fb21398716fac':'SP PJ REGIS',    // K3SpPJ@26
 };
 
 async function sha256(str){
