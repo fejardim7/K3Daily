@@ -190,6 +190,12 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .delta.ok{color:var(--ok);background:var(--ok-bg)}
 .delta.ko{color:var(--ko);background:var(--ko-bg)}
 .delta.eq{color:var(--tx3);background:rgba(30,45,84,.06)}
+
+/* ── painel por assessor ─────────────────────────── */
+.assessor-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.asel{padding:6px 12px;border:1.5px solid var(--border);border-radius:4px;font-family:var(--f);font-size:12px;font-weight:600;color:var(--tx);background:var(--white);cursor:pointer;min-width:200px;max-width:360px}
+.asel:focus{outline:none;border-color:var(--blue)}
+.a-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:3px;border:1px solid var(--border);color:var(--tx2);background:var(--s1)}
 </style>
 </head>
 <body>
@@ -215,15 +221,17 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 
 <nav>
   <button class="tab active" onclick="showTab('gestor')">Visão Gestor</button>
+  <button class="tab" onclick="showTab('assessor')">Por Assessor</button>
   <button class="tab" onclick="showTab('produto')">Por Produto</button>
   <button class="tab" onclick="showTab('equipe')">Por Equipe</button>
   <button class="tab" onclick="showTab('qualidade')">Qualidade</button>
 </nav>
 
-<div id="panel-gestor" class="panel active"><div id="loader"><div class="spin"></div>&nbsp;Carregando</div></div>
-<div id="panel-produto"   class="panel"><div class="placeholder">Em breve — Por Produto</div></div>
-<div id="panel-equipe"    class="panel"><div class="placeholder">Em breve — Por Equipe</div></div>
-<div id="panel-qualidade" class="panel"><div class="placeholder">Em breve — Qualidade</div></div>
+<div id="panel-gestor"   class="panel active"><div id="loader"><div class="spin"></div>&nbsp;Carregando</div></div>
+<div id="panel-assessor" class="panel"><div class="placeholder">Carregando assessores…</div></div>
+<div id="panel-produto"  class="panel"><div class="placeholder">Em breve — Por Produto</div></div>
+<div id="panel-equipe"   class="panel"><div class="placeholder">Em breve — Por Equipe</div></div>
+<div id="panel-qualidade"class="panel"><div class="placeholder">Em breve — Qualidade</div></div>
 
 <script>
 // ── fontes de dados (abas do Sheets) ─────────────────
@@ -362,6 +370,7 @@ function parseProdutoMeta(text){
 let allData=[], selectedTeam='ALL', currentRole='';
 let dateMap={}, produtoMeta={};
 let selectedMes='LATEST', compareMes=null, mesList=[];
+let selectedAssessor=null;
 
 // ── acesso ────────────────────────────────────────
 // TROCAR UM PIN: abrir o console do browser e rodar:
@@ -422,11 +431,13 @@ function logout(){
 
 // ── tabs ──────────────────────────────────────────
 function showTab(id){
-  ['gestor','produto','equipe','qualidade'].forEach((t,i)=>{
+  ['gestor','assessor','produto','equipe','qualidade'].forEach((t,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',t===id);
     document.getElementById('panel-'+t).classList.toggle('active',t===id);
   });
+  if(id==='assessor')buildAssessor();
 }
+function isAssessorTab(){return document.getElementById('panel-assessor')?.classList.contains('active')}
 
 // ── format ────────────────────────────────────────
 function fmtR(v){
@@ -825,8 +836,8 @@ function toggleAssessorDetail(kpiId,aid){
   details.forEach(r=>r.classList.toggle('hidden',isOpen));
 }
 
-function selectTeam(t){selectedTeam=t;buildGestor()}
-function selectMes(m){selectedMes=m;if(compareMes===m)compareMes=null;buildGestor()}
+function selectTeam(t){selectedTeam=t;buildGestor();if(isAssessorTab())buildAssessor()}
+function selectMes(m){selectedMes=m;if(compareMes===m)compareMes=null;buildGestor();if(isAssessorTab())buildAssessor()}
 function setCompare(m){compareMes=m;buildGestor()}
 function toggleCompare(){
   if(compareMes){compareMes=null;}
@@ -888,7 +899,158 @@ async function loadData(){
   mesList=[...mesSet].sort((a,b)=>mesOrder(a)-mesOrder(b));
   if(selectedMes==='LATEST'&&mesList.length)selectedMes=mesList[mesList.length-1];
 
-  if(currentRole)buildGestor();
+  if(currentRole){buildGestor();if(isAssessorTab())buildAssessor();}
+}
+
+// ── painel por assessor ───────────────────────────
+function selectAssessor(cod){selectedAssessor=cod;buildAssessor()}
+
+function toggleProductsA(id){
+  const row=document.querySelector(`tr[data-id="a_${id}"]`);if(!row)return;
+  const isOpen=row.classList.contains('open-p');
+  document.querySelectorAll(`tr[data-parent="a_${id}"]`).forEach(r=>{
+    r.classList.toggle('hidden',isOpen);
+    if(isOpen){r.classList.remove('open-p');const cid=r.dataset.id?.slice(2);if(cid)document.querySelectorAll(`tr[data-parent="a_${cid}"]`).forEach(s=>s.classList.add('hidden'));}
+  });
+  row.classList.toggle('open-p',!isOpen);
+}
+
+function buildAssessor(){
+  const panel=document.getElementById('panel-assessor');
+  const hasMes=mesList.length>0;
+  const available=allData
+    .filter(r=>(!hasMes||r.mes===selectedMes)&&(currentRole==='ALL'||r.equipe===currentRole)&&r.nome)
+    .sort((a,b)=>a.equipe.localeCompare(b.equipe)||a.nome.localeCompare(b.nome));
+
+  if(!available.length){panel.innerHTML='<div class="placeholder">Nenhum assessor disponível</div>';return;}
+  if(!selectedAssessor||!available.find(r=>r.cod===selectedAssessor))selectedAssessor=available[0].cod;
+  const a=available.find(r=>r.cod===selectedAssessor);
+  if(!a){panel.innerHTML='<div class="placeholder">Assessor não encontrado</div>';return;}
+
+  const pace=calcPace();
+  const pm=produtoMeta;
+  const KPIS_A=[
+    {id:'capLiq',label:'Captação Líquida',val:a.capLiq,meta:a.metaCapLiq||null,cur:true,dtColuna:'Cap. Liq. Total',
+     children:[
+      {id:'capPF',label:'Cap. Líq. PF',val:a.capPF,meta:a.metaCapPF||null,cur:true},
+      {id:'capPJ',label:'Cap. Líq. PJ',val:a.capPJ,meta:a.metaCapPJ||null,cur:true,children:[
+        {id:'pme',label:'PME',val:a.pme,cur:true},
+        {id:'corp',label:'Corporate',val:a.corp,cur:true},
+      ]},
+    ]},
+    {id:'auc',label:'AUC',val:a.netEmM,meta:null,cur:true,dtColuna:'Net Em M'},
+    {id:'aPF',label:'Ativações PF',val:a.aPF,meta:a.metaAtivPF300k||null,cur:false,dtColuna:'Ativação PF',children:[
+      {id:'a3p',label:'PF 300k+',val:a.a3p,meta:a.metaAtivPF300k||null,cur:false},
+      {id:'a3m',label:'PF 300k-',val:a.a3m,meta:null,cur:false},
+    ]},
+    {id:'aPJ',label:'Ativações PJ',val:a.aPJ,meta:a.metaAtivPJ300k||null,cur:false,dtColuna:'Ativação PJ',children:[
+      {id:'a3pPJ',label:'PJ 300k+',val:a.a3pPJ,meta:a.metaAtivPJ300k||null,cur:false},
+      {id:'a3mPJ',label:'PJ 300k-',val:a.a3mPJ,meta:null,cur:false},
+    ]},
+    {id:'receita',label:'Receita Total',val:a.recCalc,meta:null,cur:true,dtColuna:'Receita Renda Fixa',children:[
+      {id:'rRF', label:'Renda Fixa',    val:a.rRF, meta:pm['Renda Fixa']   ||null,cur:true},
+      {id:'rRV', label:'Renda Variável',val:a.rRV, meta:pm['Renda Variável']||null,cur:true},
+      {id:'rCet',label:'Cetipados',     val:a.rCet,meta:pm['Cetipados']    ||null,cur:true},
+      {id:'rCOE',label:'COE',           val:a.rCOE,meta:pm['COE']          ||null,cur:true},
+      {id:'rInt',label:'Internacional', val:a.rInt,meta:pm['Internacional'] ||null,cur:true},
+      {id:'rFun',label:'Fundos',        val:a.rFun,meta:pm['Fundos']        ||null,cur:true},
+      {id:'rPrev',label:'Previdência',  val:a.rPrev,meta:pm['Previdência']  ||null,cur:true},
+      {id:'rFee',label:'Fee Fixo',      val:a.rFee,meta:pm['Fee Fixo']      ||null,cur:true},
+      {id:'rCam',label:'Câmbio',        val:a.rCam,meta:pm['Câmbio']        ||null,cur:true},
+    ]},
+    {id:'seguros',label:'PA Seguros',val:a.apolEm,meta:a.metaPASeg||null,cur:true,dtColuna:'R1 Seguros',children:[
+      {id:'r1',label:'R1 — Reuniões',val:a.r1,meta:a.metaR1||null,cur:false},
+      {id:'r2',label:'R2 — Reuniões',val:a.r2,meta:a.metaR2||null,cur:false},
+    ]},
+    {id:'feCons', label:'Consórcio — Fechamentos',val:a.feCons, meta:a.metaCons  ||null,cur:true, dtColuna:'Fechamento Consórcio'},
+    {id:'modServ',label:'Modelo de Servir',       val:a.modServ,meta:a.metaModServ||null,cur:false,dtColuna:'Modelo de Servir'},
+    {id:'saude',  label:'Saúde do Cliente',       val:a.saude,  meta:a.metaSaude ||null,cur:false,dtColuna:'Saúde do Cliente'},
+    {id:'rupt',   label:'Ruptura',                val:a.rupt,   meta:a.metaRupt  ||null,cur:false,dtColuna:'Clientes em Ruptura',invertBad:true},
+    {id:'nps',    label:'NPS Respondidos',        val:a.npsResp,meta:a.metaNPS   ||null,cur:false,dtColuna:'NPS Respondidos'},
+  ];
+
+  function mkR0(kpi){
+    const hasC=!!(kpi.children?.length);
+    const c=cells(kpi.val,kpi.meta||null,kpi.cur,kpi.invertBad||false,pace.pct);
+    const dt=kpi.dtColuna?(dateMap[kpi.dtColuna]||''):'';
+    const click=hasC?`onclick="toggleProductsA('${kpi.id}')"`:''
+    return`<tr class="r0 ${c.heatCls}" data-id="a_${kpi.id}" ${click} style="${c.p!==null?`--w:${c.pw}%`:''}">
+      <td><div class="lbl">
+        ${hasC?`<span class="chev-p" onclick="event.stopPropagation();toggleProductsA('${kpi.id}')">▶</span>`:`<span style="width:14px;display:inline-block"></span>`}
+        <span class="kname">${kpi.label}</span>
+      </div></td>
+      <td class="dt-cell">${dt}</td>
+      <td class="vn ${c.vnCls}">${c.display}</td>
+      <td class="meta-cell">${c.metaDisplay}</td>
+      <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
+      <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
+      <td class="bar-col">${c.barHTML}</td>
+    </tr>`;
+  }
+  function mkR1(child,pid){
+    const hasC=!!(child.children?.length);
+    const c=cells(child.val,child.meta||null,child.cur,false,pace.pct);
+    const click=hasC?`onclick="toggleProductsA('${child.id}')"`:''
+    return`<tr class="r1 hidden ${c.heatCls}" data-id="a_${child.id}" data-parent="a_${pid}" ${click} style="${c.p!==null?`--w:${c.pw}%`:''}">
+      <td><div class="lbl">
+        ${hasC?`<span class="chev-p" onclick="event.stopPropagation();toggleProductsA('${child.id}')">▶</span>`:`<span style="width:14px;display:inline-block"></span>`}
+        <span class="sname">${child.label}</span>
+      </div></td>
+      <td class="dt-cell"></td>
+      <td class="vn ${c.vnCls}">${c.display}</td>
+      <td class="meta-cell">${c.metaDisplay}</td>
+      <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
+      <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
+      <td class="bar-col">${c.barHTML}</td>
+    </tr>`;
+  }
+  function mkR2(child2,pid){
+    const c=cells(child2.val,null,child2.cur,false,pace.pct);
+    return`<tr class="r2 hidden" data-id="a_${child2.id}" data-parent="a_${pid}">
+      <td><div class="lbl"><span style="width:14px;display:inline-block"></span><span class="ssname">${child2.label}</span></div></td>
+      <td class="dt-cell"></td>
+      <td class="vn ${c.vnCls}">${c.display}</td>
+      <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+    </tr>`;
+  }
+
+  let tbody='';
+  for(const kpi of KPIS_A){
+    tbody+=mkR0(kpi);
+    if(kpi.children?.length){
+      for(const ch of kpi.children){
+        tbody+=mkR1(ch,kpi.id);
+        if(ch.children?.length)for(const c2 of ch.children)tbody+=mkR2(c2,ch.id);
+      }
+    }
+  }
+
+  // selector: grouped by team
+  const byTeam={};
+  available.forEach(r=>{if(!byTeam[r.equipe])byTeam[r.equipe]=[];byTeam[r.equipe].push(r);});
+  const optGroups=Object.keys(byTeam).sort().map(eq=>`<optgroup label="${eq}">${byTeam[eq].map(r=>`<option value="${r.cod}"${r.cod===selectedAssessor?' selected':''}>${r.nome}</option>`).join('')}</optgroup>`).join('');
+
+  panel.innerHTML=`
+  <div class="assessor-bar">
+    <span class="team-label">Assessor</span>
+    <select class="asel" onchange="selectAssessor(this.value)">${optGroups}</select>
+    <span class="a-badge">${a.equipe}</span>
+    ${a.cod?`<span class="a-badge" style="color:var(--tx3)">${a.cod}</span>`:''}
+  </div>
+  <div class="table-wrap">
+    <table class="kt">
+      <thead><tr>
+        <th>Indicador</th>
+        <th class="c" style="width:84px">Atualização</th>
+        <th class="r" style="width:110px">Realizado</th>
+        <th class="r" style="width:100px">Meta</th>
+        <th class="c" style="width:58px">% Meta</th>
+        <th class="c" style="width:68px">Projeção</th>
+        <th class="c" style="width:120px">Progresso</th>
+      </tr></thead>
+      <tbody>${tbody}</tbody>
+    </table>
+  </div>`;
 }
 
 async function init(){
