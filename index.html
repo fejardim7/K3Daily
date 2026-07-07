@@ -213,6 +213,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .chart-seg{height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
 .chart-seg-lbl{font-size:10px;font-weight:700;color:#fff;padding:0 5px;white-space:nowrap;pointer-events:none}
 .chart-total{font-size:11px;font-weight:700;color:var(--tx);white-space:nowrap;min-width:62px;text-align:right;flex-shrink:0}
+#k3tip{position:fixed;pointer-events:none;z-index:9999;background:rgba(30,45,84,.92);color:#fff;font-size:12px;font-weight:600;font-family:var(--f);padding:5px 10px;border-radius:5px;white-space:nowrap;display:none;transform:translate(12px,-50%)}
 </style>
 </head>
 <body>
@@ -929,7 +930,6 @@ function buildEquipe(){
   const teams=[...new Set(fd.map(r=>r.equipe))].sort();
   if(!teams.length){panel.innerHTML='<div class="placeholder">Sem dados disponíveis</div>';return;}
 
-  // Agregados por equipe (somas)
   const FIELDS=['capLiq','capPF','capPJ','pme','corp',
     'aPF','a3p','a3m','aPJ','a3pPJ','a3mPJ',
     'recCalc','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
@@ -941,14 +941,13 @@ function buildEquipe(){
     FIELDS.forEach(f=>byTeam[team][f]=rows.reduce((s,r)=>s+(r[f]||0),0));
   });
 
-  // Definições dos gráficos
   const CHARTS=[
-    {label:'Captação Líquida',cur:true,segments:[
-      {field:'capPF',label:'PF',   color:'#1E2D54'},
-      {field:'capPJ',label:'PJ',   color:'#D1A771'},
+    {label:'Captação Líquida',cur:true,signed:true,segments:[
+      {field:'capPF',label:'PF',color:'#1E2D54'},
+      {field:'capPJ',label:'PJ',color:'#D1A771'},
     ]},
     {label:'AUC',cur:true,segments:[
-      {field:'netEmM',label:'AUC', color:'#3B82F6'},
+      {field:'netEmM',label:'AUC',color:'#3B82F6'},
     ]},
     {label:'Ativações — Contas 300k+',cur:false,segments:[
       {field:'a3p',  label:'PF 300k+',color:'#15803D'},
@@ -969,12 +968,18 @@ function buildEquipe(){
       {field:'rFee', label:'Fee Fixo',      color:'#0891B2'},
       {field:'rCam', label:'Câmbio',        color:'#9D174D'},
     ]},
-    {label:'PA Seguros',cur:false,segments:[
-      {field:'r1',label:'R1 Reuniões',color:'#1E4D9E'},
-      {field:'r2',label:'R2 Reuniões',color:'#D1A771',dark:false},
+    {label:'PA Seguros — Apólices Emitidas',cur:true,segments:[
+      {field:'apolEm',label:'Apólices Emitidas',color:'#1E4D9E'},
+    ]},
+    {label:'Consórcio em Andamento',cur:true,segments:[
+      {field:'conAnd',label:'Em Andamento',color:'#7C3AED'},
+    ]},
+    {label:'Reuniões de Seguros',cur:false,segments:[
+      {field:'r1',label:'R1',color:'#1E4D9E'},
+      {field:'r2',label:'R2',color:'#D1A771',dark:false},
     ]},
     {label:'Consórcio — Fechamentos',cur:true,segments:[
-      {field:'feCons',label:'Fechamentos',color:'#7C3AED'},
+      {field:'feCons',label:'Fechamentos',color:'#065F46'},
     ]},
     {label:'Modelo de Servir',cur:false,avg:true,segments:[
       {field:'modServ',label:'Score',color:'#0891B2'},
@@ -997,31 +1002,59 @@ function buildEquipe(){
   function fmtSeg(v,cur){return cur?fmtR(v):fmtN(v)}
 
   function renderChart(chart){
-    // total por equipe para este gráfico
-    const totals=teams.map(t=>chart.segments.reduce((s,seg)=>s+segVal(t,seg,chart),0));
-    const maxV=Math.max(...totals,0.001);
+    // totais por equipe e ordenação decrescente
+    const teamTotals=teams.map(t=>chart.segments.reduce((s,seg)=>s+segVal(t,seg,chart),0));
+    const idx=teamTotals.map((_,i)=>i).sort((a,b)=>teamTotals[b]-teamTotals[a]);
+    const sTeams=idx.map(i=>teams[i]);
+    const sTotals=idx.map(i=>teamTotals[i]);
 
     const legendHtml=chart.segments.length>1
       ?`<div class="chart-legend">${chart.segments.map(s=>`<span class="chart-leg-item"><span class="chart-leg-dot" style="background:${s.color}"></span>${s.label}</span>`).join('')}</div>`:'';
 
-    const rowsHtml=teams.map((team,i)=>{
-      const total=totals[i];
-      const segsHtml=chart.segments.map(seg=>{
-        const v=segVal(team,seg,chart);
-        if(v<=0)return'';
-        const pct=v/maxV*100;
-        const lblColor=seg.dark===false?'rgba(30,45,84,.8)':'#fff';
+    let rowsHtml;
+    if(chart.signed){
+      // Barras assinadas: positivo = cor normal; negativo = vermelho
+      const absMax=Math.max(...sTotals.map(v=>Math.abs(v)),0.001);
+      rowsHtml=sTeams.map((team,i)=>{
+        const total=sTotals[i];
+        const pct=Math.abs(total)/absMax*100;
+        const isNeg=total<0;
+        const barColor=isNeg?'var(--ko)':chart.segments[0].color;
+        // tooltip com breakdown PF/PJ
+        const tipParts=chart.segments.map(seg=>{const v=segVal(team,seg,chart);return`${seg.label}: ${fmtSeg(v,chart.cur)}`;}).join(' | ');
         const showLbl=pct>9;
-        return`<div class="chart-seg" style="width:${pct.toFixed(2)}%;background:${seg.color}" title="${seg.label}: ${fmtSeg(v,chart.cur)}">${showLbl?`<span class="chart-seg-lbl" style="color:${lblColor}">${fmtSeg(v,chart.cur)}</span>`:''}</div>`;
+        const bar=pct>0
+          ?`<div class="chart-seg" style="width:${pct.toFixed(2)}%;background:${barColor}" data-tip="${tipParts}">${showLbl?`<span class="chart-seg-lbl">${fmtSeg(Math.abs(total),chart.cur)}</span>`:''}</div>`
+          :'';
+        return`<div class="chart-row">
+          <div class="chart-team-lbl" title="${team}">${team}</div>
+          <div class="chart-bar-area">
+            <div class="chart-track">${bar}</div>
+            <span class="chart-total" style="${isNeg?'color:var(--ko)':''}">${total!==0?fmtSeg(total,chart.cur):'—'}</span>
+          </div>
+        </div>`;
       }).join('');
-      return`<div class="chart-row">
-        <div class="chart-team-lbl" title="${team}">${team}</div>
-        <div class="chart-bar-area">
-          <div class="chart-track">${segsHtml}</div>
-          <span class="chart-total">${total>0?fmtSeg(total,chart.cur):'—'}</span>
-        </div>
-      </div>`;
-    }).join('');
+    } else {
+      const maxV=Math.max(...sTotals,0.001);
+      rowsHtml=sTeams.map((team,i)=>{
+        const total=sTotals[i];
+        const segsHtml=chart.segments.map(seg=>{
+          const v=segVal(team,seg,chart);
+          if(v<=0)return'';
+          const pct=v/maxV*100;
+          const lblColor=seg.dark===false?'rgba(30,45,84,.8)':'#fff';
+          const showLbl=pct>9;
+          return`<div class="chart-seg" style="width:${pct.toFixed(2)}%;background:${seg.color}" data-tip="${seg.label}: ${fmtSeg(v,chart.cur)}">${showLbl?`<span class="chart-seg-lbl" style="color:${lblColor}">${fmtSeg(v,chart.cur)}</span>`:''}</div>`;
+        }).join('');
+        return`<div class="chart-row">
+          <div class="chart-team-lbl" title="${team}">${team}</div>
+          <div class="chart-bar-area">
+            <div class="chart-track">${segsHtml}</div>
+            <span class="chart-total">${total>0?fmtSeg(total,chart.cur):'—'}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
 
     return`<div class="chart-card${chart.wide?' chart-card-wide':''}">
       <div class="chart-title">${chart.label}</div>
@@ -1195,6 +1228,21 @@ function buildAssessor(){
 }
 
 async function init(){
+  // tooltip interativo para gráficos
+  const tip=document.createElement('div');tip.id='k3tip';document.body.appendChild(tip);
+  document.addEventListener('mousemove',e=>{
+    const el=e.target.closest('[data-tip]');
+    if(el){
+      tip.textContent=el.dataset.tip;
+      tip.style.display='block';
+      tip.style.left=e.clientX+'px';
+      tip.style.top=e.clientY+'px';
+    }else{
+      tip.style.display='none';
+    }
+  });
+  document.addEventListener('mouseleave',()=>{tip.style.display='none';},{capture:true});
+
   showLoginOverlay();
   const s=getSession();
   if(s)applySession(s.role); // sessão existente: oculta overlay e renderiza
