@@ -146,15 +146,6 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .proj-cell.warn{color:#92400E}
 .proj-cell.ko  {color:var(--ko)}
 
-/* progress bar */
-.bar-col{width:120px;padding:0 10px !important}
-.bar-outer{position:relative;height:10px}
-.bar-track{position:absolute;inset:0;background:rgba(30,45,84,.08);border-radius:3px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;transition:width .35s ease}
-.bar-fill.ok  {background:var(--ok)}
-.bar-fill.warn{background:#D97706}
-.bar-fill.ko  {background:var(--ko)}
-.pace-mk{position:absolute;top:-1px;bottom:-1px;width:2px;background:rgba(30,45,84,.3);border-radius:1px;transform:translateX(-50%)}
 
 /* row heat (subtle tint) */
 .heat-ok  {background:linear-gradient(90deg,var(--ok-bg) var(--w,0%),transparent var(--w,0%)) !important}
@@ -488,39 +479,33 @@ function rowHeat(p){
 function sk(rows,k){return rows.reduce((a,r)=>a+(r[k]||0),0)}
 
 // ── cells ─────────────────────────────────────────
-// Returns object with all cell HTML: Realizado | Meta | % Meta | Projeção | Progresso
-function cells(v,meta,isCur,invertBad,pace){
+// showProj: only Receita, Ativações, PA Seguros, Consórcio
+function cells(v,meta,isCur,invertBad,pace,showProj){
   const display=isCur?fmtR(v):fmtN(v);
   const p=meta?Math.round(v/meta*100):null;
   const pc=p!==null?pColor(p,pace):'';
   const pctTxt=p!==null?p+'%':'';
   let projTxt='',projCls='';
-  if(meta&&pace>0){
+  if(showProj&&meta&&pace>0){
     const proj=Math.round((v/meta)/(pace/100)*100);
     projCls=projColor(proj);
     projTxt=proj+'%';
   }
   const metaDisplay=meta?(isCur?fmtR(meta):fmtN(meta)):'—';
-  const bc=p!==null?pColor(p,pace):'gold';
-  // clamp to [0,100] so negative values don't break bar width or heat gradient
   const pw=p!==null?Math.max(0,Math.min(p,100)):0;
-  const pacePx=Math.min(pace,100);
-  const barHTML=p!==null
-    ?`<div class="bar-outer"><div class="bar-track"><div class="bar-fill ${bc}" style="width:${pw}%"></div></div><div class="pace-mk" style="left:${pacePx}%"></div></div>`
-    :'';
   const heatCls=p!==null?rowHeat(p):'';
-  return{vnCls:'',display,pc,pctTxt,projCls,projTxt,metaDisplay,barHTML,heatCls,p,pw};
+  return{vnCls:'',display,pc,pctTxt,projCls,projTxt,metaDisplay,heatCls,p,pw};
 }
 
 // ── assessor rows ─────────────────────────────────
 // subFields: [{label, field, cur}] for drill-down within an assessor
-function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace,rbc){
+function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace,rbc,showProj){
   const hasSub=subFields&&subFields.length>0;
   const sorted=[...rows].sort((a,b)=>(b[field]||0)-(a[field]||0));
   return sorted.map((a,idx)=>{
     const v=a[field]!==undefined?a[field]:0;
     const aMeta=metaField?(a[metaField]||null):null;
-    const c=cells(v,aMeta,isCur,invertBad||false,pace);
+    const c=cells(v,aMeta,isCur,invertBad||false,pace,showProj);
     const refV=rbc?(rbc[a.cod]?.[field]??null):null;
     const dHtml=rbc&&refV!==null?deltaHtml(v,refV):'';
 
@@ -531,7 +516,7 @@ function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace,rbc){
         <td><div class="lbl"><span class="a-dot"></span><span class="aname" style="font-size:11px">${sf.label}</span></div></td>
         <td class="dt-cell"></td>
         <td class="vn dim sm">${sd}</td>
-        <td class="meta-cell"></td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+        <td class="meta-cell"></td><td class="pct-cell"></td><td class="proj-cell"></td>
       </tr>`;
     }).join(''):'';
 
@@ -543,7 +528,6 @@ function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace,rbc){
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
-      <td class="bar-col">${c.barHTML}</td>
     </tr>${detailHtml}`;
   }).join('');
 }
@@ -634,34 +618,34 @@ function buildGestor(){
       ]},
     ]},
     {id:'auc',label:'AUC',val:t.netEmM,meta:null,cur:true,field:'netEmM',metaField:null,dtColuna:'Net Em M'},
-    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivPF300k||null,cur:false,field:'aPF',metaField:'metaAtivPF300k',dtColuna:'Ativação PF',children:[
-      {id:'a3p',label:'PF 300k+',val:t.a3p,meta:t.metaAtivPF300k||null,cur:false,field:'a3p',metaField:'metaAtivPF300k'},
-      {id:'a3m',label:'PF 300k-',val:t.a3m,meta:null,                  cur:false,field:'a3m',metaField:null},
+    {id:'aPF',label:'Ativações PF',val:t.aPF,meta:t.metaAtivPF300k||null,cur:false,proj:true,field:'aPF',metaField:'metaAtivPF300k',dtColuna:'Ativação PF',children:[
+      {id:'a3p',label:'PF 300k+',val:t.a3p,meta:t.metaAtivPF300k||null,cur:false,proj:true,field:'a3p',metaField:'metaAtivPF300k'},
+      {id:'a3m',label:'PF 300k-',val:t.a3m,meta:null,                  cur:false,proj:true,field:'a3m',metaField:null},
     ]},
-    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:t.metaAtivPJ300k||null,cur:false,field:'aPJ',metaField:'metaAtivPJ300k',dtColuna:'Ativação PJ',children:[
-      {id:'a3pPJ',label:'PJ 300k+',val:t.a3pPJ,meta:t.metaAtivPJ300k||null,cur:false,field:'a3pPJ',metaField:'metaAtivPJ300k'},
-      {id:'a3mPJ',label:'PJ 300k-',val:t.a3mPJ,meta:null,                  cur:false,field:'a3mPJ',metaField:null},
+    {id:'aPJ',label:'Ativações PJ',val:t.aPJ,meta:t.metaAtivPJ300k||null,cur:false,proj:true,field:'aPJ',metaField:'metaAtivPJ300k',dtColuna:'Ativação PJ',children:[
+      {id:'a3pPJ',label:'PJ 300k+',val:t.a3pPJ,meta:t.metaAtivPJ300k||null,cur:false,proj:true,field:'a3pPJ',metaField:'metaAtivPJ300k'},
+      {id:'a3mPJ',label:'PJ 300k-',val:t.a3mPJ,meta:null,                  cur:false,proj:true,field:'a3mPJ',metaField:null},
     ]},
-    {id:'receita',label:'Receita Total',val:t.recCalc,meta:recMeta,cur:true,field:'recCalc',metaField:null,dtColuna:'Receita Renda Fixa',
+    {id:'receita',label:'Receita Total',val:t.recCalc,meta:recMeta,cur:true,proj:true,field:'recCalc',metaField:null,dtColuna:'Receita Renda Fixa',
      subFields:SUB_RECEITA,
      children:[
-      {id:'rRF', label:'Renda Fixa',    val:t.rRF, meta:pm['Renda Fixa']   ||null,cur:true,field:'rRF', metaField:null},
-      {id:'rRV', label:'Renda Variável',val:t.rRV, meta:pm['Renda Variável']||null,cur:true,field:'rRV', metaField:null},
-      {id:'rCet',label:'Cetipados',     val:t.rCet,meta:pm['Cetipados']     ||null,cur:true,field:'rCet',metaField:null},
-      {id:'rCOE',label:'COE',           val:t.rCOE,meta:pm['COE']           ||null,cur:true,field:'rCOE',metaField:null},
-      {id:'rInt',label:'Internacional', val:t.rInt,meta:pm['Internacional']  ||null,cur:true,field:'rInt',metaField:null},
-      {id:'rFun',label:'Fundos',        val:t.rFun,meta:pm['Fundos']         ||null,cur:true,field:'rFun',metaField:null},
-      {id:'rPrev',label:'Previdência',  val:t.rPrev,meta:pm['Previdência']   ||null,cur:true,field:'rPrev',metaField:null},
-      {id:'rFee',label:'Fee Fixo',      val:t.rFee,meta:pm['Fee Fixo']       ||null,cur:true,field:'rFee',metaField:null},
-      {id:'rCam',label:'Câmbio',        val:t.rCam,meta:pm['Câmbio']         ||null,cur:true,field:'rCam',metaField:null},
+      {id:'rRF', label:'Renda Fixa',    val:t.rRF, meta:pm['Renda Fixa']   ||null,cur:true,proj:true,field:'rRF', metaField:null},
+      {id:'rRV', label:'Renda Variável',val:t.rRV, meta:pm['Renda Variável']||null,cur:true,proj:true,field:'rRV', metaField:null},
+      {id:'rCet',label:'Cetipados',     val:t.rCet,meta:pm['Cetipados']     ||null,cur:true,proj:true,field:'rCet',metaField:null},
+      {id:'rCOE',label:'COE',           val:t.rCOE,meta:pm['COE']           ||null,cur:true,proj:true,field:'rCOE',metaField:null},
+      {id:'rInt',label:'Internacional', val:t.rInt,meta:pm['Internacional']  ||null,cur:true,proj:true,field:'rInt',metaField:null},
+      {id:'rFun',label:'Fundos',        val:t.rFun,meta:pm['Fundos']         ||null,cur:true,proj:true,field:'rFun',metaField:null},
+      {id:'rPrev',label:'Previdência',  val:t.rPrev,meta:pm['Previdência']   ||null,cur:true,proj:true,field:'rPrev',metaField:null},
+      {id:'rFee',label:'Fee Fixo',      val:t.rFee,meta:pm['Fee Fixo']       ||null,cur:true,proj:true,field:'rFee',metaField:null},
+      {id:'rCam',label:'Câmbio',        val:t.rCam,meta:pm['Câmbio']         ||null,cur:true,proj:true,field:'rCam',metaField:null},
     ]},
-    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true, field:'apolEm',metaField:'metaPASeg',dtColuna:'R1 Seguros',
+    {id:'seguros',label:'PA Seguros',val:t.apolEm,meta:t.metaPASeg||null,cur:true,proj:true,field:'apolEm',metaField:'metaPASeg',dtColuna:'R1 Seguros',
      subFields:SUB_SEGUROS,
      children:[
-      {id:'r1',label:'R1 — Reuniões',val:t.r1,meta:t.metaR1||null,cur:false,field:'r1',metaField:'metaR1'},
-      {id:'r2',label:'R2 — Reuniões',val:t.r2,meta:t.metaR2||null,cur:false,field:'r2',metaField:'metaR2'},
+      {id:'r1',label:'R1 — Reuniões',val:t.r1,meta:t.metaR1||null,cur:false,proj:true,field:'r1',metaField:'metaR1'},
+      {id:'r2',label:'R2 — Reuniões',val:t.r2,meta:t.metaR2||null,cur:false,proj:true,field:'r2',metaField:'metaR2'},
     ]},
-    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:true, field:'feCons', metaField:'metaCons', dtColuna:'Fechamento Consórcio'},
+    {id:'feCons', label:'Consórcio — Fechamentos',val:t.feCons,  meta:t.metaCons||null, cur:true,proj:true, field:'feCons', metaField:'metaCons', dtColuna:'Fechamento Consórcio'},
     {id:'modServ',label:'Modelo de Servir',        val:t.modServ/n,meta:metaModServAvg, cur:false,field:'modServ',metaField:'metaModServ',dtColuna:'Modelo de Servir'},
     {id:'saude',  label:'Saúde do Cliente',        val:t.saude/n,  meta:metaSaudeAvg,   cur:false,field:'saude',  metaField:'metaSaude', dtColuna:'Saúde do Cliente'},
     {id:'rupt',   label:'Ruptura',                 val:t.rupt,     meta:t.metaRupt||null,cur:false,field:'rupt',  metaField:'metaRupt',  dtColuna:'Clientes em Ruptura',invertBad:true},
@@ -672,7 +656,7 @@ function buildGestor(){
   function makeR0(kpi){
     const hasC=!!(kpi.children?.length);
     const hasSub=!!(kpi.subFields?.length);
-    const c=cells(kpi.val,kpi.meta||null,kpi.cur,kpi.invertBad||false,pace.pct);
+    const c=cells(kpi.val,kpi.meta||null,kpi.cur,kpi.invertBad||false,pace.pct,kpi.proj||false);
     const rowClick=hasC||hasSub?`toggleAssessors('${kpi.id}')`:`toggleLeaf('${kpi.id}')`;
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${kpi.id}')`:`event.stopPropagation();toggleLeaf('${kpi.id}')`;
     const hintHTML=hasC&&hasSub?`<span class="mode-hint">linha = assessores · ▶ = produtos</span>`:'';
@@ -688,13 +672,12 @@ function buildGestor(){
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
-      <td class="bar-col">${c.barHTML}</td>
     </tr>`;
   }
 
   function makeR1(child,parentId){
     const hasC=!!(child.children?.length);
-    const c=cells(child.val,child.meta||null,child.cur,false,pace.pct);
+    const c=cells(child.val,child.meta||null,child.cur,false,pace.pct,child.proj||false);
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${child.id}')`:`event.stopPropagation();toggleSubKPI('${child.id}')`;
     return`<tr class="r1 hidden ${c.heatCls}" data-id="${child.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child.id}')" style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
@@ -706,36 +689,33 @@ function buildGestor(){
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
-      <td class="bar-col">${c.barHTML}</td>
     </tr>`;
   }
 
   function makeR2(child2,parentId){
-    const c=cells(child2.val,null,child2.cur,false,pace.pct);
+    const c=cells(child2.val,null,child2.cur,false,pace.pct,false);
     return`<tr class="r2 hidden" data-id="${child2.id}" data-parent="${parentId}" onclick="toggleSubKPI('${child2.id}')">
       <td><div class="lbl"><span class="chev-p">▶</span><span class="ssname">${child2.label}</span></div></td>
       <td class="dt-cell"></td>
       <td class="vn ${c.vnCls}">${c.display}</td>
-      <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+      <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td>
     </tr>`;
   }
 
   let tbody='';
   for(const kpi of KPIS){
     tbody+=makeR0(kpi);
-    // assessor rows (shown via toggleAssessors or toggleLeaf)
-    tbody+=aRows(kpi.id,kpi.field,kpi.cur,rows,kpi.subFields||null,kpi.metaField||null,kpi.invertBad||false,pace.pct,compareMes?refByCod:null);
-    // product children rows
+    tbody+=aRows(kpi.id,kpi.field,kpi.cur,rows,kpi.subFields||null,kpi.metaField||null,kpi.invertBad||false,pace.pct,compareMes?refByCod:null,kpi.proj||false);
     if(kpi.children?.length){
       for(const child of kpi.children){
         tbody+=makeR1(child,kpi.id);
         if(child.children?.length){
           for(const c2 of child.children){
             tbody+=makeR2(c2,child.id);
-            tbody+=aRows(c2.id,c2.field,c2.cur,rows,null,c2.metaField||null,c2.invertBad||false,pace.pct,compareMes?refByCod:null);
+            tbody+=aRows(c2.id,c2.field,c2.cur,rows,null,c2.metaField||null,c2.invertBad||false,pace.pct,compareMes?refByCod:null,c2.proj||false);
           }
         }else{
-          tbody+=aRows(child.id,child.field,child.cur,rows,null,child.metaField||null,child.invertBad||false,pace.pct,compareMes?refByCod:null);
+          tbody+=aRows(child.id,child.field,child.cur,rows,null,child.metaField||null,child.invertBad||false,pace.pct,compareMes?refByCod:null,child.proj||false);
         }
       }
     }
@@ -772,7 +752,6 @@ function buildGestor(){
         <th class="r" style="width:100px">Meta</th>
         <th class="c" style="width:58px">% Meta</th>
         <th class="c" style="width:68px">Projeção</th>
-        <th class="c" style="width:120px">Progresso</th>
       </tr></thead>
       <tbody>${tbody}</tbody>
     </table>
@@ -1108,30 +1087,30 @@ function buildAssessor(){
       ]},
     ]},
     {id:'auc',label:'AUC',val:a.netEmM,meta:null,cur:true,dtColuna:'Net Em M'},
-    {id:'aPF',label:'Ativações PF',val:a.aPF,meta:a.metaAtivPF300k||null,cur:false,dtColuna:'Ativação PF',children:[
-      {id:'a3p',label:'PF 300k+',val:a.a3p,meta:a.metaAtivPF300k||null,cur:false},
-      {id:'a3m',label:'PF 300k-',val:a.a3m,meta:null,cur:false},
+    {id:'aPF',label:'Ativações PF',val:a.aPF,meta:a.metaAtivPF300k||null,cur:false,proj:true,dtColuna:'Ativação PF',children:[
+      {id:'a3p',label:'PF 300k+',val:a.a3p,meta:a.metaAtivPF300k||null,cur:false,proj:true},
+      {id:'a3m',label:'PF 300k-',val:a.a3m,meta:null,cur:false,proj:true},
     ]},
-    {id:'aPJ',label:'Ativações PJ',val:a.aPJ,meta:a.metaAtivPJ300k||null,cur:false,dtColuna:'Ativação PJ',children:[
-      {id:'a3pPJ',label:'PJ 300k+',val:a.a3pPJ,meta:a.metaAtivPJ300k||null,cur:false},
-      {id:'a3mPJ',label:'PJ 300k-',val:a.a3mPJ,meta:null,cur:false},
+    {id:'aPJ',label:'Ativações PJ',val:a.aPJ,meta:a.metaAtivPJ300k||null,cur:false,proj:true,dtColuna:'Ativação PJ',children:[
+      {id:'a3pPJ',label:'PJ 300k+',val:a.a3pPJ,meta:a.metaAtivPJ300k||null,cur:false,proj:true},
+      {id:'a3mPJ',label:'PJ 300k-',val:a.a3mPJ,meta:null,cur:false,proj:true},
     ]},
-    {id:'receita',label:'Receita Total',val:a.recCalc,meta:null,cur:true,dtColuna:'Receita Renda Fixa',children:[
-      {id:'rRF', label:'Renda Fixa',    val:a.rRF, meta:pm['Renda Fixa']   ||null,cur:true},
-      {id:'rRV', label:'Renda Variável',val:a.rRV, meta:pm['Renda Variável']||null,cur:true},
-      {id:'rCet',label:'Cetipados',     val:a.rCet,meta:pm['Cetipados']    ||null,cur:true},
-      {id:'rCOE',label:'COE',           val:a.rCOE,meta:pm['COE']          ||null,cur:true},
-      {id:'rInt',label:'Internacional', val:a.rInt,meta:pm['Internacional'] ||null,cur:true},
-      {id:'rFun',label:'Fundos',        val:a.rFun,meta:pm['Fundos']        ||null,cur:true},
-      {id:'rPrev',label:'Previdência',  val:a.rPrev,meta:pm['Previdência']  ||null,cur:true},
-      {id:'rFee',label:'Fee Fixo',      val:a.rFee,meta:pm['Fee Fixo']      ||null,cur:true},
-      {id:'rCam',label:'Câmbio',        val:a.rCam,meta:pm['Câmbio']        ||null,cur:true},
+    {id:'receita',label:'Receita Total',val:a.recCalc,meta:null,cur:true,proj:true,dtColuna:'Receita Renda Fixa',children:[
+      {id:'rRF', label:'Renda Fixa',    val:a.rRF, meta:pm['Renda Fixa']   ||null,cur:true,proj:true},
+      {id:'rRV', label:'Renda Variável',val:a.rRV, meta:pm['Renda Variável']||null,cur:true,proj:true},
+      {id:'rCet',label:'Cetipados',     val:a.rCet,meta:pm['Cetipados']    ||null,cur:true,proj:true},
+      {id:'rCOE',label:'COE',           val:a.rCOE,meta:pm['COE']          ||null,cur:true,proj:true},
+      {id:'rInt',label:'Internacional', val:a.rInt,meta:pm['Internacional'] ||null,cur:true,proj:true},
+      {id:'rFun',label:'Fundos',        val:a.rFun,meta:pm['Fundos']        ||null,cur:true,proj:true},
+      {id:'rPrev',label:'Previdência',  val:a.rPrev,meta:pm['Previdência']  ||null,cur:true,proj:true},
+      {id:'rFee',label:'Fee Fixo',      val:a.rFee,meta:pm['Fee Fixo']      ||null,cur:true,proj:true},
+      {id:'rCam',label:'Câmbio',        val:a.rCam,meta:pm['Câmbio']        ||null,cur:true,proj:true},
     ]},
-    {id:'seguros',label:'PA Seguros',val:a.apolEm,meta:a.metaPASeg||null,cur:true,dtColuna:'R1 Seguros',children:[
-      {id:'r1',label:'R1 — Reuniões',val:a.r1,meta:a.metaR1||null,cur:false},
-      {id:'r2',label:'R2 — Reuniões',val:a.r2,meta:a.metaR2||null,cur:false},
+    {id:'seguros',label:'PA Seguros',val:a.apolEm,meta:a.metaPASeg||null,cur:true,proj:true,dtColuna:'R1 Seguros',children:[
+      {id:'r1',label:'R1 — Reuniões',val:a.r1,meta:a.metaR1||null,cur:false,proj:true},
+      {id:'r2',label:'R2 — Reuniões',val:a.r2,meta:a.metaR2||null,cur:false,proj:true},
     ]},
-    {id:'feCons', label:'Consórcio — Fechamentos',val:a.feCons, meta:a.metaCons  ||null,cur:true, dtColuna:'Fechamento Consórcio'},
+    {id:'feCons', label:'Consórcio — Fechamentos',val:a.feCons, meta:a.metaCons  ||null,cur:true,proj:true, dtColuna:'Fechamento Consórcio'},
     {id:'modServ',label:'Modelo de Servir',       val:a.modServ,meta:a.metaModServ||null,cur:false,dtColuna:'Modelo de Servir'},
     {id:'saude',  label:'Saúde do Cliente',       val:a.saude,  meta:a.metaSaude ||null,cur:false,dtColuna:'Saúde do Cliente'},
     {id:'rupt',   label:'Ruptura',                val:a.rupt,   meta:a.metaRupt  ||null,cur:false,dtColuna:'Clientes em Ruptura',invertBad:true},
@@ -1140,7 +1119,7 @@ function buildAssessor(){
 
   function mkR0(kpi){
     const hasC=!!(kpi.children?.length);
-    const c=cells(kpi.val,kpi.meta||null,kpi.cur,kpi.invertBad||false,pace.pct);
+    const c=cells(kpi.val,kpi.meta||null,kpi.cur,kpi.invertBad||false,pace.pct,kpi.proj||false);
     const dt=kpi.dtColuna?(dateMap[kpi.dtColuna]||''):'';
     const click=hasC?`onclick="toggleProductsA('${kpi.id}')"`:''
     return`<tr class="r0 ${c.heatCls}" data-id="a_${kpi.id}" ${click} style="${c.p!==null?`--w:${c.pw}%`:''}">
@@ -1153,12 +1132,11 @@ function buildAssessor(){
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
-      <td class="bar-col">${c.barHTML}</td>
     </tr>`;
   }
   function mkR1(child,pid){
     const hasC=!!(child.children?.length);
-    const c=cells(child.val,child.meta||null,child.cur,false,pace.pct);
+    const c=cells(child.val,child.meta||null,child.cur,false,pace.pct,child.proj||false);
     const click=hasC?`onclick="toggleProductsA('${child.id}')"`:''
     return`<tr class="r1 hidden ${c.heatCls}" data-id="a_${child.id}" data-parent="a_${pid}" ${click} style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
@@ -1170,16 +1148,15 @@ function buildAssessor(){
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
-      <td class="bar-col">${c.barHTML}</td>
     </tr>`;
   }
   function mkR2(child2,pid){
-    const c=cells(child2.val,null,child2.cur,false,pace.pct);
+    const c=cells(child2.val,null,child2.cur,false,pace.pct,false);
     return`<tr class="r2 hidden" data-id="a_${child2.id}" data-parent="a_${pid}">
       <td><div class="lbl"><span style="width:14px;display:inline-block"></span><span class="ssname">${child2.label}</span></div></td>
       <td class="dt-cell"></td>
       <td class="vn ${c.vnCls}">${c.display}</td>
-      <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td><td class="bar-col"></td>
+      <td class="meta-cell">—</td><td class="pct-cell"></td><td class="proj-cell"></td>
     </tr>`;
   }
 
@@ -1220,7 +1197,6 @@ function buildAssessor(){
         <th class="r" style="width:100px">Meta</th>
         <th class="c" style="width:58px">% Meta</th>
         <th class="c" style="width:68px">Projeção</th>
-        <th class="c" style="width:120px">Progresso</th>
       </tr></thead>
       <tbody>${tbody}</tbody>
     </table>
