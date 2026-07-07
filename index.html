@@ -1029,8 +1029,13 @@ function buildAssessor(){
   const byTeam={};
   available.forEach(r=>{if(!byTeam[r.equipe])byTeam[r.equipe]=[];byTeam[r.equipe].push(r);});
   const optGroups=Object.keys(byTeam).sort().map(eq=>`<optgroup label="${eq}">${byTeam[eq].map(r=>`<option value="${r.cod}"${r.cod===selectedAssessor?' selected':''}>${r.nome}</option>`).join('')}</optgroup>`).join('');
+  const mesPillsA=mesList.length>1?`<div class="mes-bar">
+    <span class="team-label">Período</span>
+    ${mesList.map(m=>`<button class="pill ${selectedMes===m?'active':''}" onclick="selectMes('${m}')">${m}</button>`).join('')}
+  </div>`:'' ;
 
   panel.innerHTML=`
+  ${mesPillsA}
   <div class="assessor-bar">
     <span class="team-label">Assessor</span>
     <select class="asel" onchange="selectAssessor(this.value)">${optGroups}</select>
