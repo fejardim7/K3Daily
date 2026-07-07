@@ -196,6 +196,23 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .asel{padding:6px 12px;border:1.5px solid var(--border);border-radius:4px;font-family:var(--f);font-size:12px;font-weight:600;color:var(--tx);background:var(--white);cursor:pointer;min-width:200px;max-width:360px}
 .asel:focus{outline:none;border-color:var(--blue)}
 .a-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:3px;border:1px solid var(--border);color:var(--tx2);background:var(--s1)}
+
+/* ── gráficos por equipe ─────────────────────────── */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+@media(max-width:780px){.chart-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
+.chart-card-wide{grid-column:1/-1}
+.chart-title{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px;letter-spacing:.02em;text-transform:uppercase}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chart-leg-item{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--tx2)}
+.chart-leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.chart-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.chart-team-lbl{font-size:11px;font-weight:600;color:var(--tx2);white-space:nowrap;width:100px;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
+.chart-bar-area{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.chart-track{flex:1;height:26px;background:rgba(30,45,84,.07);border-radius:4px;overflow:hidden;display:flex;min-width:0}
+.chart-seg{height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.chart-seg-lbl{font-size:10px;font-weight:700;color:#fff;padding:0 5px;white-space:nowrap;pointer-events:none}
+.chart-total{font-size:11px;font-weight:700;color:var(--tx);white-space:nowrap;min-width:62px;text-align:right;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -436,8 +453,10 @@ function showTab(id){
     document.getElementById('panel-'+t).classList.toggle('active',t===id);
   });
   if(id==='assessor')buildAssessor();
+  if(id==='equipe')buildEquipe();
 }
 function isAssessorTab(){return document.getElementById('panel-assessor')?.classList.contains('active')}
+function isEquipeTab(){return document.getElementById('panel-equipe')?.classList.contains('active')}
 
 // ── format ────────────────────────────────────────
 function fmtR(v){
@@ -836,8 +855,8 @@ function toggleAssessorDetail(kpiId,aid){
   details.forEach(r=>r.classList.toggle('hidden',isOpen));
 }
 
-function selectTeam(t){selectedTeam=t;buildGestor();if(isAssessorTab())buildAssessor()}
-function selectMes(m){selectedMes=m;if(compareMes===m)compareMes=null;buildGestor();if(isAssessorTab())buildAssessor()}
+function selectTeam(t){selectedTeam=t;buildGestor();if(isAssessorTab())buildAssessor();if(isEquipeTab())buildEquipe()}
+function selectMes(m){selectedMes=m;if(compareMes===m)compareMes=null;buildGestor();if(isAssessorTab())buildAssessor();if(isEquipeTab())buildEquipe()}
 function setCompare(m){compareMes=m;buildGestor()}
 function toggleCompare(){
   if(compareMes){compareMes=null;}
@@ -899,7 +918,124 @@ async function loadData(){
   mesList=[...mesSet].sort((a,b)=>mesOrder(a)-mesOrder(b));
   if(selectedMes==='LATEST'&&mesList.length)selectedMes=mesList[mesList.length-1];
 
-  if(currentRole){buildGestor();if(isAssessorTab())buildAssessor();}
+  if(currentRole){buildGestor();if(isAssessorTab())buildAssessor();if(isEquipeTab())buildEquipe();}
+}
+
+// ── painel por equipe (gráficos) ─────────────────
+function buildEquipe(){
+  const panel=document.getElementById('panel-equipe');
+  const hasMes=mesList.length>0;
+  const fd=allData.filter(r=>(!hasMes||r.mes===selectedMes)&&r.equipe&&r.nome);
+  const teams=[...new Set(fd.map(r=>r.equipe))].sort();
+  if(!teams.length){panel.innerHTML='<div class="placeholder">Sem dados disponíveis</div>';return;}
+
+  // Agregados por equipe (somas)
+  const FIELDS=['capLiq','capPF','capPJ','pme','corp',
+    'aPF','a3p','a3m','aPJ','a3pPJ','a3mPJ',
+    'recCalc','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
+    'netEmM','r1','r2','apolEm','feCons','conAnd','modServ','saude','rupt','npsNR','npsResp'];
+  const byTeam={};
+  teams.forEach(team=>{
+    const rows=fd.filter(r=>r.equipe===team);
+    byTeam[team]={_n:rows.length};
+    FIELDS.forEach(f=>byTeam[team][f]=rows.reduce((s,r)=>s+(r[f]||0),0));
+  });
+
+  // Definições dos gráficos
+  const CHARTS=[
+    {label:'Captação Líquida',cur:true,segments:[
+      {field:'capPF',label:'PF',   color:'#1E2D54'},
+      {field:'capPJ',label:'PJ',   color:'#D1A771'},
+    ]},
+    {label:'AUC',cur:true,segments:[
+      {field:'netEmM',label:'AUC', color:'#3B82F6'},
+    ]},
+    {label:'Ativações — Contas 300k+',cur:false,segments:[
+      {field:'a3p',  label:'PF 300k+',color:'#15803D'},
+      {field:'a3pPJ',label:'PJ 300k+',color:'#1E4D9E'},
+    ]},
+    {label:'Ativações — Demais',cur:false,segments:[
+      {field:'a3m',  label:'PF 300k-',color:'#86EFAC',dark:false},
+      {field:'a3mPJ',label:'PJ 300k-',color:'#93C5FD',dark:false},
+    ]},
+    {label:'Receita Total',cur:true,wide:true,segments:[
+      {field:'rRF',  label:'Renda Fixa',    color:'#1E2D54'},
+      {field:'rRV',  label:'Renda Variável',color:'#2563EB'},
+      {field:'rCet', label:'Cetipados',     color:'#D1A771',dark:false},
+      {field:'rCOE', label:'COE',           color:'#7C3AED'},
+      {field:'rInt', label:'Internacional', color:'#065F46'},
+      {field:'rFun', label:'Fundos',        color:'#DC2626'},
+      {field:'rPrev',label:'Previdência',   color:'#EA580C'},
+      {field:'rFee', label:'Fee Fixo',      color:'#0891B2'},
+      {field:'rCam', label:'Câmbio',        color:'#9D174D'},
+    ]},
+    {label:'PA Seguros',cur:false,segments:[
+      {field:'r1',label:'R1 Reuniões',color:'#1E4D9E'},
+      {field:'r2',label:'R2 Reuniões',color:'#D1A771',dark:false},
+    ]},
+    {label:'Consórcio — Fechamentos',cur:true,segments:[
+      {field:'feCons',label:'Fechamentos',color:'#7C3AED'},
+    ]},
+    {label:'Modelo de Servir',cur:false,avg:true,segments:[
+      {field:'modServ',label:'Score',color:'#0891B2'},
+    ]},
+    {label:'Saúde do Cliente',cur:false,avg:true,segments:[
+      {field:'saude',label:'Score',color:'#15803D'},
+    ]},
+    {label:'Clientes em Ruptura',cur:false,segments:[
+      {field:'rupt',label:'Ruptura',color:'#B91C1C'},
+    ]},
+    {label:'NPS Respondidos',cur:false,segments:[
+      {field:'npsResp',label:'Respondidos',color:'#16A34A'},
+    ]},
+  ];
+
+  function segVal(team,seg,chart){
+    const raw=byTeam[team][seg.field]||0;
+    return chart.avg?(byTeam[team]._n?raw/byTeam[team]._n:0):raw;
+  }
+  function fmtSeg(v,cur){return cur?fmtR(v):fmtN(v)}
+
+  function renderChart(chart){
+    // total por equipe para este gráfico
+    const totals=teams.map(t=>chart.segments.reduce((s,seg)=>s+segVal(t,seg,chart),0));
+    const maxV=Math.max(...totals,0.001);
+
+    const legendHtml=chart.segments.length>1
+      ?`<div class="chart-legend">${chart.segments.map(s=>`<span class="chart-leg-item"><span class="chart-leg-dot" style="background:${s.color}"></span>${s.label}</span>`).join('')}</div>`:'';
+
+    const rowsHtml=teams.map((team,i)=>{
+      const total=totals[i];
+      const segsHtml=chart.segments.map(seg=>{
+        const v=segVal(team,seg,chart);
+        if(v<=0)return'';
+        const pct=v/maxV*100;
+        const lblColor=seg.dark===false?'rgba(30,45,84,.8)':'#fff';
+        const showLbl=pct>9;
+        return`<div class="chart-seg" style="width:${pct.toFixed(2)}%;background:${seg.color}" title="${seg.label}: ${fmtSeg(v,chart.cur)}">${showLbl?`<span class="chart-seg-lbl" style="color:${lblColor}">${fmtSeg(v,chart.cur)}</span>`:''}</div>`;
+      }).join('');
+      return`<div class="chart-row">
+        <div class="chart-team-lbl" title="${team}">${team}</div>
+        <div class="chart-bar-area">
+          <div class="chart-track">${segsHtml}</div>
+          <span class="chart-total">${total>0?fmtSeg(total,chart.cur):'—'}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    return`<div class="chart-card${chart.wide?' chart-card-wide':''}">
+      <div class="chart-title">${chart.label}</div>
+      ${legendHtml}
+      ${rowsHtml}
+    </div>`;
+  }
+
+  const mesPillsE=mesList.length>1?`<div class="mes-bar" style="margin-bottom:14px">
+    <span class="team-label">Período</span>
+    ${mesList.map(m=>`<button class="pill ${selectedMes===m?'active':''}" onclick="selectMes('${m}')">${m}</button>`).join('')}
+  </div>`:'';
+
+  panel.innerHTML=mesPillsE+`<div class="chart-grid">${CHARTS.map(renderChart).join('')}</div>`;
 }
 
 // ── painel por assessor ───────────────────────────
