@@ -182,6 +182,14 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px
 .login-err.hidden{visibility:hidden}
 .logout-btn{font-size:11px;font-weight:600;padding:3px 10px;border-radius:3px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.55);background:none;cursor:pointer;font-family:var(--f);transition:all .12s}
 .logout-btn:hover{border-color:rgba(255,255,255,.45);color:rgba(255,255,255,.9)}
+
+/* ── mes / comparação ────────────────────────────── */
+.mes-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;align-items:center}
+.compare-on{background:rgba(209,167,113,.18)!important;border-color:var(--gold)!important;color:var(--gold)!important}
+.delta{font-size:10px;font-weight:700;margin-left:5px;padding:1px 5px;border-radius:3px;white-space:nowrap;vertical-align:middle}
+.delta.ok{color:var(--ok);background:var(--ok-bg)}
+.delta.ko{color:var(--ko);background:var(--ko-bg)}
+.delta.eq{color:var(--tx3);background:rgba(30,45,84,.06)}
 </style>
 </head>
 <body>
@@ -241,6 +249,21 @@ function calcPace(){
 function g(r,c){return(r[c]||'').trim()}
 function pn(v){return parseFloat((v||'0').replace(/\./g,'').replace(',','.'))||0}
 
+function mesOrder(s){
+  const M={Jan:1,Fev:2,Mar:3,Abr:4,Mai:5,Jun:6,Jul:7,Ago:8,Set:9,Out:10,Nov:11,Dez:12};
+  const p=(s||'').split('/');
+  return(p[1]?2000+parseInt(p[1]):0)*100+(M[p[0]]||0);
+}
+function deltaHtml(cur,ref){
+  if(ref===null||ref===undefined||ref===0||!isFinite(cur)||!isFinite(ref))return'';
+  const pct=Math.round((cur-ref)/Math.abs(ref)*100);
+  if(!isFinite(pct))return'';
+  if(pct===0)return`<span class="delta eq">—</span>`;
+  const cls=pct>0?'ok':'ko';
+  const sym=pct>0?'▲':'▼';
+  return`<span class="delta ${cls}">${sym}${Math.abs(pct)}%</span>`;
+}
+
 function parseCSV(text){
   const lines=text.trim().split('\n');
   const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
@@ -261,6 +284,7 @@ function parseCSV(text){
 // ── mapeamento de linhas do Consolidado ──────────────
 function mapRow(r){
   const m={
+    mes:     g(r,'Mês'),
     equipe:  g(r,'Equipe'),
     nome:    g(r,'Nome Assessor'),
     cod:     g(r,'Cod A'),
@@ -337,6 +361,7 @@ function parseProdutoMeta(text){
 // ── state ─────────────────────────────────────────
 let allData=[], selectedTeam='ALL', currentRole='';
 let dateMap={}, produtoMeta={};
+let selectedMes='LATEST', compareMes=null, mesList=[];
 
 // ── acesso ────────────────────────────────────────
 // TROCAR UM PIN: abrir o console do browser e rodar:
@@ -458,14 +483,15 @@ function cells(v,meta,isCur,invertBad,pace){
 
 // ── assessor rows ─────────────────────────────────
 // subFields: [{label, field, cur}] for drill-down within an assessor
-function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace){
+function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace,rbc){
   const hasSub=subFields&&subFields.length>0;
-  // Ordenar do maior para o menor
   const sorted=[...rows].sort((a,b)=>(b[field]||0)-(a[field]||0));
   return sorted.map((a,idx)=>{
     const v=a[field]!==undefined?a[field]:0;
     const aMeta=metaField?(a[metaField]||null):null;
     const c=cells(v,aMeta,isCur,invertBad||false,pace);
+    const refV=rbc?(rbc[a.cod]?.[field]??null):null;
+    const dHtml=rbc&&refV!==null?deltaHtml(v,refV):'';
 
     const detailHtml=hasSub?subFields.map(sf=>{
       const sv=a[sf.field]!==undefined?a[sf.field]:0;
@@ -482,7 +508,7 @@ function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace){
     return`<tr class="ra hidden" data-for="${kpiId}" data-aid="${idx}" data-has-detail="${hasSub?1:0}"${hasSub?` onclick="toggleAssessorDetail('${kpiId}',${idx})"`:''}>
       <td><div class="lbl">${chevron}<span class="aname">${a.nome}</span></div></td>
       <td class="dt-cell"></td>
-      <td class="vn dim">${c.display}</td>
+      <td class="vn dim">${c.display}${dHtml}</td>
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
@@ -496,7 +522,9 @@ function aRows(kpiId,field,isCur,rows,subFields,metaField,invertBad,pace){
 function buildGestor(){
   const panel=document.getElementById('panel-gestor');
   const teams=[...new Set(allData.map(r=>r.equipe).filter(Boolean))].sort();
-  const rows=selectedTeam==='ALL'?allData:allData.filter(r=>r.equipe===selectedTeam);
+  const hasMes=mesList.length>0;
+  const baseRows=selectedTeam==='ALL'?allData:allData.filter(r=>r.equipe===selectedTeam);
+  const rows=baseRows.filter(r=>!hasMes||r.mes===selectedMes);
   const pace=calcPace();
   const n=rows.length||1;
 
@@ -519,6 +547,18 @@ function buildGestor(){
    'metaModServ','metaSaude','metaRupt','metaPASeg',
    'metaR1','metaR2','metaCons','metaAtivPF300k','metaAtivPJ300k','metaNPS',
   ].forEach(k=>t[k]=sk(rows,k));
+
+  // modo comparação: agregados do mês de referência
+  let tRef={}, refByCod={};
+  if(compareMes){
+    const rowsRef=baseRows.filter(r=>r.mes===compareMes);
+    ['capLiq','capPF','capPJ','pme','corp',
+     'aPF','a3p','a3m','aPJ','a3pPJ','a3mPJ',
+     'recCalc','rRF','rRV','rCet','rCOE','rInt','rFun','rPrev','rFee','rCam',
+     'netEmM','r1','r2','apolEm','feCons','conAnd','modServ','saude','rupt','npsNR','npsResp',
+    ].forEach(k=>tRef[k]=sk(rowsRef,k));
+    rowsRef.forEach(r=>{refByCod[r.cod]=r;});
+  }
 
   const capMeta  = t.metaCapLiq  ||null;
   // Meta Receita Total = soma das metas de produto (firma toda) quando ALL, null por equipe
@@ -606,13 +646,14 @@ function buildGestor(){
     const chevClick=hasC?`event.stopPropagation();toggleProducts('${kpi.id}')`:`event.stopPropagation();toggleLeaf('${kpi.id}')`;
     const hintHTML=hasC&&hasSub?`<span class="mode-hint">linha = assessores · ▶ = produtos</span>`:'';
     const dt=kpi.dtColuna?(dateMap[kpi.dtColuna]||''):'';
+    const dHtml=compareMes?deltaHtml(kpi.val,tRef[kpi.field]||0):'';
     return`<tr class="r0 ${c.heatCls}" data-id="${kpi.id}" onclick="${rowClick}" style="${c.p!==null?`--w:${c.pw}%`:''}">
       <td><div class="lbl">
         <span class="chev-p" onclick="${chevClick}">▶</span>
         <span class="kname">${kpi.label}</span>${hintHTML}
       </div></td>
       <td class="dt-cell">${dt}</td>
-      <td class="vn ${c.vnCls}">${c.display}</td>
+      <td class="vn ${c.vnCls}">${c.display}${dHtml}</td>
       <td class="meta-cell">${c.metaDisplay}</td>
       <td class="pct-cell ${c.pc}">${c.pctTxt}</td>
       <td class="proj-cell ${c.projCls}">${c.projTxt}</td>
@@ -652,7 +693,7 @@ function buildGestor(){
   for(const kpi of KPIS){
     tbody+=makeR0(kpi);
     // assessor rows (shown via toggleAssessors or toggleLeaf)
-    tbody+=aRows(kpi.id,kpi.field,kpi.cur,rows,kpi.subFields||null,kpi.metaField||null,kpi.invertBad||false,pace.pct);
+    tbody+=aRows(kpi.id,kpi.field,kpi.cur,rows,kpi.subFields||null,kpi.metaField||null,kpi.invertBad||false,pace.pct,compareMes?refByCod:null);
     // product children rows
     if(kpi.children?.length){
       for(const child of kpi.children){
@@ -660,16 +701,26 @@ function buildGestor(){
         if(child.children?.length){
           for(const c2 of child.children){
             tbody+=makeR2(c2,child.id);
-            tbody+=aRows(c2.id,c2.field,c2.cur,rows,null,c2.metaField||null,c2.invertBad||false,pace.pct);
+            tbody+=aRows(c2.id,c2.field,c2.cur,rows,null,c2.metaField||null,c2.invertBad||false,pace.pct,compareMes?refByCod:null);
           }
         }else{
-          tbody+=aRows(child.id,child.field,child.cur,rows,null,child.metaField||null,child.invertBad||false,pace.pct);
+          tbody+=aRows(child.id,child.field,child.cur,rows,null,child.metaField||null,child.invertBad||false,pace.pct,compareMes?refByCod:null);
         }
       }
     }
   }
 
+  const mesPills=mesList.length>1?`<div class="mes-bar">
+    <span class="team-label">Período</span>
+    ${mesList.map(m=>`<button class="pill ${selectedMes===m?'active':''}" onclick="selectMes('${m}')">${m}</button>`).join('')}
+    <button class="pill ${compareMes?'compare-on':''}" style="margin-left:4px" onclick="toggleCompare()">↔ Comparar</button>
+  </div>${compareMes?`<div class="mes-bar" style="margin-top:-2px">
+    <span class="team-label" style="font-size:9px;opacity:.7">vs</span>
+    ${mesList.filter(m=>m!==selectedMes).map(m=>`<button class="pill ${compareMes===m?'active':''}" onclick="setCompare('${m}')">${m}</button>`).join('')}
+  </div>`:''}`:'' ;
+
   panel.innerHTML=`
+  ${mesPills}
   ${currentRole==='ALL'?`<div class="team-bar">
     <span class="team-label">Equipe</span>
     <button class="pill ${selectedTeam==='ALL'?'active':''}" onclick="selectTeam('ALL')">Todas</button>
@@ -775,6 +826,13 @@ function toggleAssessorDetail(kpiId,aid){
 }
 
 function selectTeam(t){selectedTeam=t;buildGestor()}
+function selectMes(m){selectedMes=m;if(compareMes===m)compareMes=null;buildGestor()}
+function setCompare(m){compareMes=m;buildGestor()}
+function toggleCompare(){
+  if(compareMes){compareMes=null;}
+  else{const i=mesList.indexOf(selectedMes);compareMes=mesList[i>0?i-1:mesList.findIndex(m=>m!==selectedMes)]||null;}
+  buildGestor();
+}
 
 // ── load ──────────────────────────────────────────
 async function safeFetch(url){
@@ -824,6 +882,11 @@ async function loadData(){
     const base=Object.assign(mapRow({}),{equipe:g(r,'Equipe'),nome:g(r,'Nome Assessor'),cod:g(r,'Cod A')});
     allData.push(Object.assign(base,mapMeta(r)));
   });
+
+  // extrair meses disponíveis e definir mês selecionado padrão
+  const mesSet=new Set(allData.map(r=>r.mes).filter(Boolean));
+  mesList=[...mesSet].sort((a,b)=>mesOrder(a)-mesOrder(b));
+  if(selectedMes==='LATEST'&&mesList.length)selectedMes=mesList[mesList.length-1];
 
   if(currentRole)buildGestor();
 }
